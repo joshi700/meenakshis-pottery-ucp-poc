@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google UCP + Google Pay Payment Flow Diagrams</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f8f9fa; color: #1a1a2e; padding: 2rem; }
+        h1 { text-align: center; font-size: 2rem; margin-bottom: 0.5rem; color: #1a73e8; }
+        .subtitle { text-align: center; color: #666; margin-bottom: 2rem; font-size: 1.1rem; }
+        .diagram-section { background: #fff; border-radius: 12px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .diagram-section h2 { color: #1a73e8; margin-bottom: 0.5rem; font-size: 1.4rem; }
+        .diagram-section .description { color: #555; margin-bottom: 1.5rem; font-size: 0.95rem; line-height: 1.6; }
+        .mermaid { display: flex; justify-content: center; overflow-x: auto; }
+        .legend { background: #e8f0fe; border-radius: 8px; padding: 1rem 1.5rem; margin-top: 1rem; font-size: 0.9rem; }
+        .legend strong { color: #1a73e8; }
+        .nav { display: flex; gap: 0.75rem; justify-content: center; margin-bottom: 2rem; flex-wrap: wrap; }
+        .nav a { background: #1a73e8; color: #fff; padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; font-size: 0.9rem; }
+        .nav a:hover { background: #1557b0; }
+    </style>
+</head>
+<body>
+    <h1>Google UCP + Google Pay + MPGS</h1>
+    <p class="subtitle">Complete Payment Flow Architecture &mdash; Proof of Concept</p>
+
+    <div class="nav">
+        <a href="#flow1">1. High-Level Architecture</a>
+        <a href="#flow2">2. UCP Discovery</a>
+        <a href="#flow3">3. Checkout Session Lifecycle</a>
+        <a href="#flow4">4. Google Pay Token Flow</a>
+        <a href="#flow5">5. MPGS Gateway Flow</a>
+        <a href="#flow6">6. End-to-End Sequence</a>
+    </div>
+
+    <!-- DIAGRAM 1: High-Level Architecture -->
+    <div class="diagram-section" id="flow1">
+        <h2>1. High-Level Architecture</h2>
+        <p class="description">
+            Shows how the major components connect: the AI Agent (Google Gemini / Search AI Mode),
+            Google's UCP infrastructure, your merchant backend, Google Pay, and MPGS.
+        </p>
+        <pre class="mermaid">
+graph TB
+    subgraph "AI Surface"
+        A["👤 Consumer<br/>(in Google Search AI Mode / Gemini)"]
+        B["🤖 AI Agent<br/>(Google)"]
+    end
+
+    subgraph "Google Infrastructure"
+        C["UCP Orchestrator"]
+        D["Google Pay<br/>(Tokenization Service)"]
+    end
+
+    subgraph "Merchant (You)"
+        E["UCP Profile<br/>/.well-known/ucp"]
+        F["Checkout API<br/>(Node.js Express)"]
+        G["Order Management"]
+    end
+
+    subgraph "Payment Processing"
+        H["MPGS Gateway<br/>(Mastercard)"]
+        I["Card Networks<br/>(Visa / MC / Amex)"]
+    end
+
+    A -->|"Browses / selects product"| B
+    B -->|"Discovers capabilities"| E
+    B -->|"Creates checkout session"| C
+    C -->|"POST /checkout-sessions"| F
+    A -->|"Confirms payment"| D
+    D -->|"Encrypted payment token"| C
+    C -->|"POST /checkout-sessions/:id/complete"| F
+    F -->|"Forward token"| H
+    H -->|"Decrypt + authorize"| I
+    I -->|"Auth response"| H
+    H -->|"Payment result"| F
+    F -->|"Order confirmation"| G
+    G -->|"Order status webhook"| C
+    C -->|"Confirmation"| B
+    B -->|"Shows confirmation"| A
+
+    style A fill:#e8f0fe,stroke:#1a73e8
+    style B fill:#fce8e6,stroke:#ea4335
+    style C fill:#fef7e0,stroke:#f9ab00
+    style D fill:#e6f4ea,stroke:#34a853
+    style E fill:#f3e8fd,stroke:#a142f4
+    style F fill:#f3e8fd,stroke:#a142f4
+    style G fill:#f3e8fd,stroke:#a142f4
+    style H fill:#fff3e0,stroke:#ff6d00
+    style I fill:#fff3e0,stroke:#ff6d00
+        </pre>
+        <div class="legend">
+            <strong>Key:</strong>
+            🔵 Blue = Consumer &nbsp;|&nbsp;
+            🔴 Red = AI Agent &nbsp;|&nbsp;
+            🟡 Yellow = Google UCP &nbsp;|&nbsp;
+            🟢 Green = Google Pay &nbsp;|&nbsp;
+            🟣 Purple = Your Merchant Backend &nbsp;|&nbsp;
+            🟠 Orange = MPGS / Card Networks
+        </div>
+    </div>
+
+    <!-- DIAGRAM 2: UCP Discovery Flow -->
+    <div class="diagram-section" id="flow2">
+        <h2>2. UCP Discovery &mdash; How Google Finds Your Store</h2>
+        <p class="description">
+            Before any checkout happens, the AI Agent must discover what your store supports.
+            You publish a UCP profile manifest at <code>/.well-known/ucp</code> that declares
+            your capabilities, supported payment handlers, and API endpoints.
+        </p>
+        <pre class="mermaid">
+sequenceDiagram
+    participant Agent as 🤖 AI Agent
+    participant MC as Google Merchant Center
+    participant Merchant as 🏪 Your Server
+
+    Note over Agent: User asks "Buy Nike Air Max size 10"
+    Agent->>MC: Look up merchant for product
+    MC-->>Agent: Merchant ID + domain
+    Agent->>Merchant: GET /.well-known/ucp
+    Merchant-->>Agent: UCP Profile JSON
+
+    Note over Agent: Profile contains:
+    Note over Agent: ✅ Supported capabilities (checkout, orders)
+    Note over Agent: ✅ Payment handlers (Google Pay)
+    Note over Agent: ✅ API base URL
+    Note over Agent: ✅ Supported shipping regions
+    Note over Agent: ✅ Identity linking config (OAuth)
+
+    Agent->>Agent: Validate merchant capabilities
+    Agent->>Agent: Begin checkout flow
+        </pre>
+    </div>
+
+    <!-- DIAGRAM 3: Checkout Session Lifecycle -->
+    <div class="diagram-section" id="flow3">
+        <h2>3. Checkout Session Lifecycle</h2>
+        <p class="description">
+            A checkout session goes through distinct states. The AI Agent manages this lifecycle
+            by calling your REST API endpoints. Each state transition is driven by user actions
+            (selecting shipping, confirming payment, etc.).
+        </p>
+        <pre class="mermaid">
+stateDiagram-v2
+    [*] --> Created: POST /checkout-sessions
+    Created --> Updated: PUT /checkout-sessions/:id<br/>(address, shipping method)
+    Updated --> Updated: PUT /checkout-sessions/:id<br/>(tax recalculation, promo code)
+    Updated --> Completing: POST /checkout-sessions/:id/complete<br/>(with payment token)
+    Created --> Completing: POST /checkout-sessions/:id/complete<br/>(simple checkout)
+    Completing --> Completed: Payment authorized ✅
+    Completing --> Failed: Payment declined ❌
+    Created --> Cancelled: POST /checkout-sessions/:id/cancel
+    Updated --> Cancelled: POST /checkout-sessions/:id/cancel
+    Failed --> Updated: User retries with different payment
+    Completed --> [*]
+    Cancelled --> [*]
+
+    note right of Created
+        Session contains:
+        - Cart items + prices
+        - Available shipping options
+        - Supported payment methods
+    end note
+
+    note right of Completing
+        MPGS receives encrypted
+        Google Pay token, decrypts,
+        and authorizes the charge
+    end note
+        </pre>
+    </div>
+
+    <!-- DIAGRAM 4: Google Pay Token Flow -->
+    <div class="diagram-section" id="flow4">
+        <h2>4. Google Pay Token Flow (Gateway Encryption with MPGS)</h2>
+        <p class="description">
+            When the user confirms payment, Google Pay generates an encrypted payment token.
+            With <strong>gateway encryption</strong> (your setup), the token is encrypted for MPGS &mdash;
+            your server never sees raw card data, maintaining PCI compliance.
+        </p>
+        <pre class="mermaid">
+sequenceDiagram
+    participant User as 👤 Consumer
+    participant GPay as 💳 Google Pay
+    participant UCP as 🟡 UCP Orchestrator
+    participant Server as 🟣 Your Server
+    participant MPGS as 🟠 MPGS Gateway
+    participant Network as 🏦 Card Network
+
+    User->>GPay: Tap "Pay with Google Pay"
+    GPay->>GPay: User selects card / confirms biometric
+
+    rect rgb(230, 244, 234)
+        Note over GPay,MPGS: Gateway Encryption (PCI-safe)
+        GPay->>GPay: Generate payment token
+        GPay->>GPay: Encrypt token WITH MPGS public key
+        GPay-->>UCP: Encrypted PaymentData token
+    end
+
+    UCP->>Server: POST /checkout-sessions/:id/complete<br/>{paymentData: encryptedToken}
+    Server->>Server: Extract token (DO NOT decrypt)
+    Server->>MPGS: Forward encrypted token via MPGS API<br/>PUT /api/rest/version/73/merchant/{id}/order/{oid}/transaction/{tid}
+
+    rect rgb(255, 243, 224)
+        Note over MPGS,Network: MPGS Processing
+        MPGS->>MPGS: Decrypt token with private key
+        MPGS->>MPGS: Extract PAN, expiry, cryptogram
+        MPGS->>Network: Authorization request
+        Network-->>MPGS: Approved / Declined
+    end
+
+    MPGS-->>Server: Payment result {status, authCode, gatewayTxnId}
+    Server-->>UCP: Checkout session completed / failed
+    UCP-->>User: "Order confirmed! 🎉" / "Payment failed"
+        </pre>
+        <div class="legend">
+            <strong>Important:</strong> With gateway encryption, your server <em>never</em> handles raw card data.
+            The token is encrypted specifically for MPGS using their public key. You simply pass it through.
+            This means you do NOT need Level 1 PCI DSS compliance &mdash; SAQ A-EP is sufficient.
+        </div>
+    </div>
+
+    <!-- DIAGRAM 5: MPGS API Integration Detail -->
+    <div class="diagram-section" id="flow5">
+        <h2>5. MPGS API Integration Detail</h2>
+        <p class="description">
+            Shows exactly how your Node.js server communicates with the MPGS REST API
+            to process the Google Pay token.
+        </p>
+        <pre class="mermaid">
+sequenceDiagram
+    participant App as 🟣 Node.js Server
+    participant MPGS as 🟠 MPGS REST API
+
+    Note over App: Received Google Pay encrypted token from UCP
+
+    App->>MPGS: PUT /api/rest/version/73/merchant/{merchantId}/order/{orderId}/transaction/{txnId}
+    Note right of App: Request Body:
+    Note right of App: {
+    Note right of App:   "apiOperation": "PAY",
+    Note right of App:   "order": { "amount": "99.99", "currency": "USD" },
+    Note right of App:   "sourceOfFunds": {
+    Note right of App:     "type": "CARD",
+    Note right of App:     "provided": {
+    Note right of App:       "card": {
+    Note right of App:         "devicePayment": {
+    Note right of App:           "paymentToken": "{google_pay_token}"
+    Note right of App:         }
+    Note right of App:       }
+    Note right of App:     }
+    Note right of App:   }
+    Note right of App: }
+
+    MPGS-->>App: 200 OK
+    Note left of MPGS: Response:
+    Note left of MPGS: {
+    Note left of MPGS:   "result": "SUCCESS",
+    Note left of MPGS:   "order": { "status": "CAPTURED" },
+    Note left of MPGS:   "transaction": {
+    Note left of MPGS:     "authorizationCode": "ABC123",
+    Note left of MPGS:     "id": "txn-001"
+    Note left of MPGS:   }
+    Note left of MPGS: }
+        </pre>
+    </div>
+
+    <!-- DIAGRAM 6: Complete End-to-End Sequence -->
+    <div class="diagram-section" id="flow6">
+        <h2>6. Complete End-to-End Sequence</h2>
+        <p class="description">
+            The full journey from a user asking an AI agent to buy a product,
+            through checkout, payment, and order confirmation.
+        </p>
+        <pre class="mermaid">
+sequenceDiagram
+    participant User as 👤 Consumer
+    participant AI as 🤖 AI Agent<br/>(Gemini/Search)
+    participant UCP as 🟡 Google UCP
+    participant Shop as 🟣 Merchant API
+    participant GPay as 💳 Google Pay
+    participant MPGS as 🟠 MPGS
+
+    Note over User,MPGS: PHASE 1 — DISCOVERY
+    User->>AI: "Buy a pair of Nike Air Max 90, size 10"
+    AI->>Shop: GET /.well-known/ucp
+    Shop-->>AI: UCP Profile (capabilities, payment handlers)
+
+    Note over User,MPGS: PHASE 2 — SESSION CREATION
+    AI->>UCP: Create checkout for product X
+    UCP->>Shop: POST /checkout-sessions<br/>{items: [{sku: "nike-am90", qty: 1, size: "10"}]}
+    Shop-->>UCP: Session created {id, items, shipping_options, total}
+    UCP-->>AI: Present options to user
+
+    Note over User,MPGS: PHASE 3 — USER CONFIGURES ORDER
+    AI->>User: "Ship to your default address?<br/>Standard ($5.99) or Express ($12.99)?"
+    User->>AI: "Express shipping to my home address"
+    AI->>UCP: Update session with address + shipping
+    UCP->>Shop: PUT /checkout-sessions/:id<br/>{shipping: "express", address: {...}}
+    Shop->>Shop: Recalculate tax + total
+    Shop-->>UCP: Updated session {subtotal, tax, shipping, total}
+    UCP-->>AI: Updated totals
+
+    Note over User,MPGS: PHASE 4 — PAYMENT
+    AI->>User: "Total: $118.98. Pay with Google Pay?"
+    User->>AI: "Yes, confirm"
+    AI->>GPay: Request payment token
+    GPay->>User: Biometric / PIN confirmation
+    User->>GPay: ✅ Confirmed
+    GPay-->>AI: Encrypted payment token (for MPGS)
+
+    Note over User,MPGS: PHASE 5 — COMPLETION
+    AI->>UCP: Complete checkout with payment token
+    UCP->>Shop: POST /checkout-sessions/:id/complete<br/>{paymentData: encryptedToken}
+    Shop->>MPGS: Forward token for payment
+    MPGS->>MPGS: Decrypt → Authorize → Capture
+    MPGS-->>Shop: SUCCESS {authCode: "ABC123"}
+    Shop->>Shop: Create order, reserve inventory
+    Shop-->>UCP: {status: "completed", orderId: "ORD-12345"}
+    UCP-->>AI: Order confirmed
+
+    Note over User,MPGS: PHASE 6 — CONFIRMATION
+    AI->>User: "✅ Order confirmed!<br/>Order #ORD-12345<br/>Nike Air Max 90, Size 10<br/>Express shipping to 123 Main St<br/>Total: $118.98<br/>Arriving in 2-3 business days"
+
+    Note over User,MPGS: PHASE 7 — POST-PURCHASE (ASYNC)
+    Shop-->>UCP: Webhook: Order shipped {tracking: "1Z999..."}
+    UCP-->>AI: Notify user of shipment
+        </pre>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            securityLevel: 'loose',
+            sequence: { mirrorActors: false, messageMargin: 40 },
+            flowchart: { curve: 'basis' }
+        });
+    </script>
+</body>
+</html>
