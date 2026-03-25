@@ -459,7 +459,14 @@ let selectedProduct = null;
 let paymentsClient = null;
 let flowState = 'init';
 
-const POTTERY_EMOJI = { 'nike-am90-black-10': '\u{1FAD6}', 'sony-wh1000xm5': '\u{1F3BA}', 'dyson-v15': '\u{1F3FA}' };
+const POTTERY_EMOJI = { 'clay_bowl_001': '\u{1FAD6}', 'flower_vase_002': '\u{1F3BA}', 'tea_set_003': '\u{1F3FA}' };
+// Helper: extract a total amount (cents) from UCP totals array
+function getTotal(totalsArr, type) {
+    const entry = totalsArr.find(t => t.type === type);
+    return entry ? entry.amount : 0;
+}
+// Helper: format cents as dollars
+function fmtPrice(cents) { return (cents / 100).toFixed(2); }
 
 // Google Pay Config
 const GPAY_CONFIG = { environment: 'TEST', merchantId: 'BCR2DN4T7654321', merchantName: "Meenakshi's Pottery", gateway: 'mpgs', gatewayMerchantId: 'TESTMPGSMERCHANT' };
@@ -697,8 +704,8 @@ async function loadCatalog() {
     const { data: products } = await apiCall('GET', '/api/products');
     let html = '<strong>Here\'s what we have:</strong><div class="chat-products">';
     products.forEach(p => {
-        const emoji = POTTERY_EMOJI[p.sku] || '\u{1F3FA}';
-        html += `<div class="chat-product" data-sku="${p.sku}" onclick="selectProduct('${p.sku}')"><div class="prod-emoji">${emoji}</div><div class="prod-name">${escapeHtml(p.name)}</div><div class="prod-price">$${p.price.toFixed(2)}</div><div class="prod-sku">${p.sku}</div></div>`;
+        const emoji = POTTERY_EMOJI[p.id] || '\u{1F3FA}';
+        html += `<div class="chat-product" data-sku="${p.id}" onclick="selectProduct('${p.id}')"><div class="prod-emoji">${emoji}</div><div class="prod-name">${escapeHtml(p.title)}</div><div class="prod-price">$${fmtPrice(p.price)}</div><div class="prod-sku">${p.id}</div></div>`;
     });
     html += '</div>';
     addHtmlMsg('agent', html);
@@ -709,15 +716,15 @@ async function loadCatalog() {
 async function selectProduct(sku) {
     document.querySelectorAll('.chat-product').forEach(el => el.classList.toggle('selected', el.dataset.sku === sku));
     const { data: products } = await apiCall('GET', '/api/products');
-    selectedProduct = products.find(p => p.sku === sku);
+    selectedProduct = products.find(p => p.id === sku);
     if (!selectedProduct) return;
     flowState = 'selecting';
     setFlowStep('session');
-    addMsg('user', `I'd like the ${selectedProduct.name}`);
+    addMsg('user', `I'd like the ${selectedProduct.title}`);
     addTyping(); await delay(400);
-    addMsg('agent', `Great choice! Creating checkout session for ${selectedProduct.name}...`);
+    addMsg('agent', `Great choice! Creating checkout session for ${selectedProduct.title}...`);
     addTyping(); await delay(300);
-    const { data: session } = await apiCall('POST', '/checkout-sessions', { items: [{ sku: selectedProduct.sku, quantity: 1 }] });
+    const { data: session } = await apiCall('POST', '/checkout-sessions', { line_items: [{ item: { id: selectedProduct.id }, quantity: 1 }] });
     currentSession = session;
     setFlowStep('configure');
     addMsg('agent', 'Session created! Fill in your details below:');
@@ -746,9 +753,9 @@ function showInlineCheckout(session) {
             <div class="ck-row">
                 <div class="ck-group"><label>Shipping</label>
                     <select id="ckShipping" onchange="updateShipping()">
-                        <option value="standard">Standard \u2014 $5.99</option>
-                        <option value="express">Express \u2014 $12.99</option>
-                        <option value="overnight">Overnight \u2014 $24.99</option>
+                        <option value="ship_standard">Standard \u2014 $5.99</option>
+                        <option value="ship_express">Express \u2014 $12.99</option>
+                        <option value="ship_overnight">Overnight \u2014 $24.99</option>
                     </select>
                 </div>
                 <div class="ck-group"><label>Promo Code</label>
@@ -767,12 +774,16 @@ function showInlineCheckout(session) {
     }, 100);
 }
 function renderSummaryHtml(s) {
-    const t = s.totals;
-    let h = `<div class="ck-summary-row"><span>Subtotal</span><span>$${t.subtotal.toFixed(2)}</span></div>`;
-    h += `<div class="ck-summary-row"><span>Shipping (${escapeHtml(s.shipping_method.name)})</span><span>$${t.shipping.toFixed(2)}</span></div>`;
-    h += `<div class="ck-summary-row"><span>Tax</span><span>$${t.tax.toFixed(2)}</span></div>`;
-    if (t.discount) h += `<div class="ck-summary-row discount"><span>Discount (${escapeHtml(s.promo_code)})</span><span>-$${t.discount.toFixed(2)}</span></div>`;
-    h += `<div class="ck-summary-row total"><span>Total</span><span>$${t.total.toFixed(2)}</span></div>`;
+    const t = s.totals; // array of {type, amount, display_text?}
+    let h = '';
+    for (const entry of t) {
+        const label = entry.display_text || entry.type.charAt(0).toUpperCase() + entry.type.slice(1);
+        const isDiscount = entry.type === 'discount';
+        const isTotal = entry.type === 'total';
+        const cls = isDiscount ? ' discount' : (isTotal ? ' total' : '');
+        const prefix = isDiscount ? '-' : '';
+        h += `<div class="ck-summary-row${cls}"><span>${escapeHtml(label)}</span><span>${prefix}$${fmtPrice(Math.abs(entry.amount))}</span></div>`;
+    }
     return h;
 }
 async function updateShipping() {
@@ -792,7 +803,8 @@ async function applyPromo(code) {
     currentSession = s;
     const el = document.getElementById('ckSummary');
     if (el) el.innerHTML = renderSummaryHtml(s);
-    if (s.totals.discount) addMsg('agent', `Promo "${code}" applied! You save $${s.totals.discount.toFixed(2)}. New total: $${s.totals.total.toFixed(2)}`);
+    const discountAmt = getTotal(s.totals, 'discount');
+    if (discountAmt) addMsg('agent', `Promo "${code}" applied! You save $${fmtPrice(Math.abs(discountAmt))}. New total: $${fmtPrice(getTotal(s.totals, 'total'))}`);
     else addMsg('agent', `Sorry, "${code}" isn't a valid promo code.`);
 }
 
@@ -801,11 +813,12 @@ async function onGooglePayClicked() {
     if (!currentSession) return;
     flowState = 'paying';
     setFlowStep('gpay');
-    addMsg('agent', `Total: $${currentSession.totals.total.toFixed(2)}. Requesting Google Pay...`);
+    const totalAmt = getTotal(currentSession.totals, 'total');
+    addMsg('agent', `Total: $${fmtPrice(totalAmt)}. Requesting Google Pay...`);
     try {
         const pd = await paymentsClient.loadPaymentData({
             apiVersion: 2, apiVersionMinor: 0, allowedPaymentMethods: [cardPaymentMethod],
-            transactionInfo: { totalPriceStatus: 'FINAL', totalPrice: currentSession.totals.total.toString(), currencyCode: 'USD', countryCode: 'US' },
+            transactionInfo: { totalPriceStatus: 'FINAL', totalPrice: fmtPrice(getTotal(currentSession.totals, 'total')), currencyCode: 'USD', countryCode: 'US' },
             merchantInfo: { merchantId: GPAY_CONFIG.merchantId, merchantName: GPAY_CONFIG.merchantName }
         });
         logApi('GPAY', 'loadPaymentData', 200, { type: pd.paymentMethodData.type, description: pd.paymentMethodData.description, token: '[ENCRYPTED]' });
@@ -838,14 +851,14 @@ async function completeCheckout(paymentData) {
                 <div style="display:flex;justify-content:space-between;padding:0.12rem 0;"><span>Auth</span><strong>${r.session.payment.authorization_code}</strong></div>
                 <div style="display:flex;justify-content:space-between;padding:0.12rem 0;"><span>Txn</span><strong>${r.session.payment.transaction_id}</strong></div>
                 <div style="display:flex;justify-content:space-between;padding:0.12rem 0;"><span>Gateway</span><strong>MPGS</strong></div>
-                <div style="display:flex;justify-content:space-between;padding:0.12rem 0;"><span>Amount</span><strong>$${r.session.totals.total.toFixed(2)}</strong></div>
+                <div style="display:flex;justify-content:space-between;padding:0.12rem 0;"><span>Amount</span><strong>$${fmtPrice(getTotal(r.session.totals, 'total'))}</strong></div>
                 <div style="display:flex;justify-content:space-between;padding:0.12rem 0;"><span>Status</span><strong style="color:#2e7d32;">${r.session.payment.status}</strong></div>
             </div>
             <p style="margin-top:0.25rem;font-size:0.62rem;color:#5a8a5e;">Google Pay + MPGS Gateway Encryption</p>
         </div>`;
         removeTyping(chat); chat.appendChild(msg); chat.scrollTop = chat.scrollHeight;
         await delay(400);
-        addMsg('agent', `Thank you for shopping at Meenakshi's Pottery! Your ${selectedProduct.name} will be shipped soon.`);
+        addMsg('agent', `Thank you for shopping at Meenakshi's Pottery! Your ${selectedProduct.title} will be shipped soon.`);
     } else { addMsg('system', 'Payment could not be completed. Please try again.'); flowState = 'checkout'; }
 }
 
