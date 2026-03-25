@@ -177,8 +177,8 @@ app.get('/api/products', (req, res) => {
 // UCP Checkout Session Endpoints
 // ---------------------------------------------------------------------------
 
-// POST /api/ucp/checkout-sessions — Create a new checkout session
-app.post('/api/ucp/checkout-sessions', (req, res) => {
+// POST /checkout-sessions — Create a new checkout session
+app.post('/checkout-sessions', (req, res) => {
   const { items, shipping_address, shipping_method } = req.body;
 
   if (!items || !items.length) {
@@ -229,15 +229,15 @@ app.post('/api/ucp/checkout-sessions', (req, res) => {
   res.status(201).json(session);
 });
 
-// GET /api/ucp/checkout-sessions/:id — Retrieve a checkout session
-app.get('/api/ucp/checkout-sessions/:id', (req, res) => {
+// GET /checkout-sessions/:id — Retrieve a checkout session
+app.get('/checkout-sessions/:id', (req, res) => {
   const session = sessions.get(req.params.id);
   if (!session) return res.status(404).json({ error: 'Session not found' });
   res.json(session);
 });
 
-// PUT /api/ucp/checkout-sessions/:id — Update a checkout session
-app.put('/api/ucp/checkout-sessions/:id', (req, res) => {
+// PUT /checkout-sessions/:id — Update a checkout session
+app.put('/checkout-sessions/:id', (req, res) => {
   const session = sessions.get(req.params.id);
   if (!session) return res.status(404).json({ error: 'Session not found' });
 
@@ -281,8 +281,8 @@ app.put('/api/ucp/checkout-sessions/:id', (req, res) => {
   res.json(session);
 });
 
-// POST /api/ucp/checkout-sessions/:id/complete — Complete checkout (process payment)
-app.post('/api/ucp/checkout-sessions/:id/complete', (req, res) => {
+// POST /checkout-sessions/:id/complete — Complete checkout (process payment)
+app.post('/checkout-sessions/:id/complete', (req, res) => {
   const session = sessions.get(req.params.id);
   if (!session) return res.status(404).json({ error: 'Session not found' });
 
@@ -365,8 +365,8 @@ app.post('/api/ucp/checkout-sessions/:id/complete', (req, res) => {
   });
 });
 
-// POST /api/ucp/checkout-sessions/:id/cancel — Cancel a checkout session
-app.post('/api/ucp/checkout-sessions/:id/cancel', (req, res) => {
+// POST /checkout-sessions/:id/cancel — Cancel a checkout session
+app.post('/checkout-sessions/:id/cancel', (req, res) => {
   const session = sessions.get(req.params.id);
   if (!session) return res.status(404).json({ error: 'Session not found' });
 
@@ -385,7 +385,7 @@ app.post('/api/ucp/checkout-sessions/:id/cancel', (req, res) => {
 // ---------------------------------------------------------------------------
 // Order status endpoint (for webhook simulation)
 // ---------------------------------------------------------------------------
-app.get('/api/orders/:id', (req, res) => {
+app.get('/orders/:id', (req, res) => {
   const order = orders.get(req.params.id);
   if (!order) return res.status(404).json({ error: 'Order not found' });
   res.json(order);

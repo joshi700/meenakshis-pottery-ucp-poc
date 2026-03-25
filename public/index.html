@@ -717,7 +717,7 @@ async function selectProduct(sku) {
     addTyping(); await delay(400);
     addMsg('agent', `Great choice! Creating checkout session for ${selectedProduct.name}...`);
     addTyping(); await delay(300);
-    const { data: session } = await apiCall('POST', '/api/ucp/checkout-sessions', { items: [{ sku: selectedProduct.sku, quantity: 1 }] });
+    const { data: session } = await apiCall('POST', '/checkout-sessions', { items: [{ sku: selectedProduct.sku, quantity: 1 }] });
     currentSession = session;
     setFlowStep('configure');
     addMsg('agent', 'Session created! Fill in your details below:');
@@ -777,7 +777,7 @@ function renderSummaryHtml(s) {
 }
 async function updateShipping() {
     if (!currentSession) return;
-    const { data: s } = await apiCall('PUT', `/api/ucp/checkout-sessions/${currentSession.id}`, {
+    const { data: s } = await apiCall('PUT', `/checkout-sessions/${currentSession.id}`, {
         shipping_address: { name: document.getElementById('ckName').value, address: document.getElementById('ckAddress').value, city: document.getElementById('ckCity').value, state: document.getElementById('ckState').value, zip: document.getElementById('ckZip').value, country: 'US' },
         shipping_method: document.getElementById('ckShipping').value
     });
@@ -788,7 +788,7 @@ async function updateShipping() {
 async function applyPromoFromForm() { const c = document.getElementById('ckPromo').value.trim(); if (c) await applyPromo(c); }
 async function applyPromo(code) {
     if (!currentSession) return;
-    const { data: s } = await apiCall('PUT', `/api/ucp/checkout-sessions/${currentSession.id}`, { promo_code: code });
+    const { data: s } = await apiCall('PUT', `/checkout-sessions/${currentSession.id}`, { promo_code: code });
     currentSession = s;
     const el = document.getElementById('ckSummary');
     if (el) el.innerHTML = renderSummaryHtml(s);
@@ -822,7 +822,7 @@ async function onGooglePayClicked() {
 // --- Complete ---
 async function completeCheckout(paymentData) {
     addTyping(); await delay(700);
-    const { data: r } = await apiCall('POST', `/api/ucp/checkout-sessions/${currentSession.id}/complete`, { paymentData });
+    const { data: r } = await apiCall('POST', `/checkout-sessions/${currentSession.id}/complete`, { paymentData });
     if (r.status === 'completed') {
         flowState = 'done';
         setFlowStep('complete');
