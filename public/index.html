@@ -30,7 +30,6 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
 
-        /* ---- MAIN LAYOUT ---- */
         .app {
             display: grid;
             grid-template-columns: 260px 1fr 360px;
@@ -50,7 +49,7 @@
             display: flex;
             align-items: center;
             gap: 0.75rem;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
             padding-bottom: 1rem;
             border-bottom: 1px solid rgba(255,255,255,0.1);
         }
@@ -60,62 +59,110 @@
             border-radius: 10px;
             display: flex; align-items: center; justify-content: center;
             font-size: 1.2rem; color: #fff; font-weight: 700;
+            flex-shrink: 0;
         }
         .sidebar-brand .name {
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: #fff;
-            line-height: 1.2;
+            font-size: 0.95rem; font-weight: 600; color: #fff; line-height: 1.2;
         }
         .sidebar-brand .name small {
-            font-size: 0.7rem;
-            color: #888;
-            font-weight: 400;
-            display: block;
+            font-size: 0.7rem; color: #888; font-weight: 400; display: block;
         }
 
-        .sidebar-tabs {
+        .sidebar-section-label {
+            font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.1em;
+            color: #555; margin: 1rem 0 0.5rem 0.25rem;
+        }
+
+        /* ---- ANIMATED FLOW INFOGRAPHIC ---- */
+        .flow-infographic {
+            flex: 1;
             display: flex;
             flex-direction: column;
-            gap: 0.25rem;
-            flex: 1;
+            gap: 0;
+            padding: 0 0.25rem;
+            overflow-y: auto;
         }
-        .sidebar-tab {
-            padding: 0.7rem 0.85rem;
-            border-radius: 10px;
-            font-size: 0.85rem;
-            cursor: pointer;
+        .flow-node {
             display: flex;
             align-items: center;
             gap: 0.6rem;
-            transition: background 0.15s;
-            color: #aaa;
-            border: none;
-            background: none;
-            text-align: left;
-            width: 100%;
+            padding: 0.5rem 0.6rem;
+            border-radius: 8px;
+            font-size: 0.72rem;
+            color: #777;
+            transition: all 0.4s ease;
+            position: relative;
         }
-        .sidebar-tab:hover { background: rgba(255,255,255,0.06); color: #ddd; }
-        .sidebar-tab.active { background: rgba(255,255,255,0.1); color: #fff; }
-        .sidebar-tab .icon { font-size: 1.1rem; width: 22px; text-align: center; }
+        .flow-node.active { color: #fff; background: rgba(255,255,255,0.06); }
+        .flow-node.done { color: #a8e6cf; }
+        .flow-node .fn-icon {
+            width: 26px; height: 26px;
+            border-radius: 50%;
+            border: 2px solid #444;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.7rem;
+            flex-shrink: 0;
+            transition: all 0.4s ease;
+            position: relative;
+            z-index: 2;
+        }
+        .flow-node.active .fn-icon {
+            border-color: var(--accent);
+            background: var(--accent);
+            color: #fff;
+            box-shadow: 0 0 12px rgba(201,100,66,0.5);
+        }
+        .flow-node.done .fn-icon {
+            border-color: #4caf50;
+            background: #4caf50;
+            color: #fff;
+        }
+        .flow-node .fn-label { line-height: 1.3; }
+        .flow-node .fn-label small { display: block; font-size: 0.6rem; color: #555; }
+
+        /* Animated connecting lines */
+        .flow-line {
+            width: 2px;
+            height: 16px;
+            margin-left: calc(0.6rem + 12px);
+            background: #333;
+            position: relative;
+            overflow: hidden;
+        }
+        .flow-line.active::after, .flow-line.done::after {
+            content: '';
+            position: absolute;
+            top: -100%;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, transparent, var(--accent), transparent);
+            animation: flowPulse 1.5s infinite;
+        }
+        .flow-line.done { background: #4caf50; }
+        .flow-line.done::after { background: linear-gradient(180deg, transparent, #81c784, transparent); }
+        @keyframes flowPulse {
+            0% { top: -100%; }
+            100% { top: 200%; }
+        }
 
         .sidebar-footer {
             margin-top: auto;
-            padding-top: 1rem;
+            padding-top: 0.75rem;
             border-top: 1px solid rgba(255,255,255,0.08);
-            font-size: 0.72rem;
+            font-size: 0.68rem;
             color: #555;
-            line-height: 1.6;
+            line-height: 1.5;
         }
         .sidebar-footer .env-badge {
             display: inline-block;
             background: #f9ab00;
             color: #000;
-            padding: 0.15rem 0.5rem;
+            padding: 0.12rem 0.45rem;
             border-radius: 4px;
             font-weight: 600;
-            font-size: 0.65rem;
-            margin-bottom: 0.5rem;
+            font-size: 0.6rem;
+            margin-bottom: 0.35rem;
         }
 
         /* ---- CENTER: CHAT AREA ---- */
@@ -130,286 +177,153 @@
             overflow: hidden;
         }
         .chat-header {
-            padding: 0.85rem 1.5rem;
+            padding: 0.65rem 1.25rem;
             border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 0.6rem;
             background: #fff;
             flex-shrink: 0;
         }
         .chat-header .avatar {
-            width: 32px; height: 32px;
+            width: 30px; height: 30px;
             background: var(--accent);
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            font-size: 0.85rem; color: #fff; font-weight: 600;
+            font-size: 0.8rem; color: #fff; font-weight: 600;
         }
-        .chat-header .info h3 { font-size: 0.9rem; font-weight: 600; }
-        .chat-header .info p { font-size: 0.72rem; color: var(--text-light); }
+        .chat-header .info h3 { font-size: 0.85rem; font-weight: 600; }
+        .chat-header .info p { font-size: 0.68rem; color: var(--text-light); }
 
         .chat-messages {
             flex: 1 1 0;
             min-height: 0;
             overflow-y: auto;
-            padding: 1.5rem;
+            padding: 1rem 1.25rem;
             display: flex;
             flex-direction: column;
-            gap: 1rem;
+            gap: 0.6rem;
             scroll-behavior: smooth;
         }
 
-        /* Tab content */
-        .tab-content { display: none; flex: 1 1 0; min-height: 0; flex-direction: column; overflow: hidden; }
-        .tab-content.active { display: flex; }
-
-        .diagrams-frame { flex: 1; border: none; width: 100%; }
-
         /* ---- CHAT MESSAGES ---- */
-        .msg {
-            max-width: 88%;
-            animation: fadeIn 0.25s ease;
-        }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-
+        .msg { max-width: 88%; animation: fadeIn 0.25s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
         .msg.user { align-self: flex-end; }
         .msg.agent { align-self: flex-start; }
         .msg.system { align-self: center; max-width: 100%; }
-
-        .msg-label {
-            font-size: 0.7rem;
-            font-weight: 600;
-            color: var(--text-light);
-            margin-bottom: 0.3rem;
-            padding: 0 0.25rem;
-        }
+        .msg-label { font-size: 0.65rem; font-weight: 600; color: var(--text-light); margin-bottom: 0.2rem; padding: 0 0.2rem; }
         .msg.user .msg-label { text-align: right; }
-
         .msg-bubble {
-            padding: 0.75rem 1rem;
+            padding: 0.6rem 0.85rem;
             border-radius: var(--radius);
-            font-size: 0.88rem;
-            line-height: 1.55;
+            font-size: 0.84rem;
+            line-height: 1.5;
             white-space: pre-wrap;
         }
-        .msg.user .msg-bubble {
-            background: var(--user-bubble);
-            color: var(--text-white);
-            border-bottom-right-radius: 4px;
-        }
-        .msg.agent .msg-bubble {
-            background: var(--agent-bubble);
-            color: var(--text);
-            border-bottom-left-radius: 4px;
-            border: 1px solid var(--border);
-        }
-        .msg.system .msg-bubble {
-            background: var(--system-bubble);
-            color: #8a6d00;
-            font-size: 0.8rem;
-            text-align: center;
-            border-radius: 8px;
-        }
-        .msg.success .msg-bubble {
-            background: #e8f5e9;
-            color: #2e7d32;
-            border: 1px solid #a5d6a7;
-            text-align: center;
-            border-radius: 12px;
-            padding: 1.5rem;
-        }
-        .msg.success .msg-bubble h3 { font-size: 1.3rem; margin-bottom: 0.5rem; }
-        .msg.success .msg-bubble .confetti { font-size: 2rem; margin-bottom: 0.5rem; }
+        .msg.user .msg-bubble { background: var(--user-bubble); color: var(--text-white); border-bottom-right-radius: 4px; }
+        .msg.agent .msg-bubble { background: var(--agent-bubble); color: var(--text); border-bottom-left-radius: 4px; border: 1px solid var(--border); }
+        .msg.system .msg-bubble { background: var(--system-bubble); color: #8a6d00; font-size: 0.75rem; text-align: center; border-radius: 8px; padding: 0.45rem 0.75rem; }
+        .msg.success .msg-bubble { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; text-align: center; border-radius: 12px; padding: 1.25rem; }
+        .msg.success .msg-bubble h3 { font-size: 1.2rem; margin-bottom: 0.4rem; }
+        .msg.success .msg-bubble .confetti { font-size: 1.8rem; margin-bottom: 0.4rem; }
 
-        /* ---- INLINE PRODUCT CARDS (in chat) ---- */
-        .chat-products {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 0.75rem;
-            margin-top: 0.5rem;
-        }
+        /* ---- INLINE PRODUCT CARDS ---- */
+        .chat-products { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.4rem; margin-top: 0.3rem; }
         .chat-product {
-            background: #fff;
-            border: 1.5px solid var(--border);
-            border-radius: 12px;
-            padding: 0.75rem;
-            cursor: pointer;
-            transition: all 0.15s;
-            text-align: center;
+            background: #fff; border: 1.5px solid var(--border); border-radius: 8px;
+            padding: 0.4rem 0.35rem; cursor: pointer; transition: all 0.15s; text-align: center;
         }
-        .chat-product:hover { border-color: var(--accent); box-shadow: 0 2px 12px rgba(201,100,66,0.15); }
+        .chat-product:hover { border-color: var(--accent); box-shadow: 0 2px 8px rgba(201,100,66,0.12); }
         .chat-product.selected { border-color: var(--accent); background: var(--accent-light); }
-        .chat-product .prod-emoji { font-size: 2.5rem; margin-bottom: 0.4rem; }
-        .chat-product .prod-name { font-size: 0.82rem; font-weight: 600; margin-bottom: 0.15rem; }
-        .chat-product .prod-price { font-size: 0.9rem; font-weight: 700; color: var(--accent); }
-        .chat-product .prod-sku { font-size: 0.65rem; color: var(--text-light); margin-top: 0.2rem; }
+        .chat-product .prod-emoji { font-size: 1.4rem; margin-bottom: 0.1rem; line-height: 1; }
+        .chat-product .prod-name { font-size: 0.68rem; font-weight: 600; line-height: 1.2; }
+        .chat-product .prod-price { font-size: 0.75rem; font-weight: 700; color: var(--accent); margin-top: 0.05rem; }
+        .chat-product .prod-sku { font-size: 0.55rem; color: var(--text-light); margin-top: 0.05rem; }
 
-        /* ---- INLINE CHECKOUT FORM (in chat) ---- */
-        .chat-checkout {
-            background: #fff;
-            border: 1.5px solid var(--border);
-            border-radius: 12px;
-            padding: 1.25rem;
-            margin-top: 0.5rem;
-        }
-        .chat-checkout h4 {
-            font-size: 0.9rem;
-            font-weight: 600;
-            margin-bottom: 0.75rem;
-            color: var(--accent-dark);
-        }
-        .ck-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-bottom: 0.6rem; }
+        /* ---- COMPACT CHECKOUT FORM ---- */
+        .chat-checkout { background: #fff; border: 1.5px solid var(--border); border-radius: 8px; padding: 0.55rem; margin-top: 0.2rem; }
+        .chat-checkout h4 { font-size: 0.72rem; font-weight: 600; margin-bottom: 0.3rem; color: var(--accent-dark); }
+        .ck-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.25rem 0.3rem; margin-bottom: 0.25rem; }
+        .ck-row.triple { grid-template-columns: 1fr 1fr 1fr; }
         .ck-row.full { grid-template-columns: 1fr; }
-        .ck-group label { font-size: 0.72rem; color: var(--text-light); display: block; margin-bottom: 0.2rem; }
+        .ck-group label { font-size: 0.58rem; color: var(--text-light); display: block; margin-bottom: 0.05rem; line-height: 1; }
         .ck-group input, .ck-group select {
-            width: 100%;
-            padding: 0.5rem 0.65rem;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-size: 0.82rem;
-            font-family: inherit;
-            outline: none;
-            transition: border 0.15s;
+            width: 100%; padding: 0.25rem 0.4rem; border: 1px solid var(--border);
+            border-radius: 5px; font-size: 0.72rem; font-family: inherit; outline: none; transition: border 0.15s;
         }
         .ck-group input:focus, .ck-group select:focus { border-color: var(--accent); }
-
-        .ck-promo-row { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; }
-        .ck-promo-row input { flex: 1; }
+        .ck-promo-row { display: flex; gap: 0.25rem; margin: 0; }
+        .ck-promo-row input { flex: 1; padding: 0.25rem 0.4rem; border: 1px solid var(--border); border-radius: 5px; font-size: 0.68rem; font-family: inherit; outline: none; }
         .ck-promo-row button {
-            padding: 0.5rem 0.85rem;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            background: #fff;
-            font-size: 0.78rem;
-            cursor: pointer;
-            font-family: inherit;
-            white-space: nowrap;
+            padding: 0.25rem 0.5rem; border: 1px solid var(--border); border-radius: 5px;
+            background: #fff; font-size: 0.65rem; cursor: pointer; font-family: inherit; white-space: nowrap;
         }
         .ck-promo-row button:hover { background: var(--accent-light); }
-
-        .ck-summary {
-            background: var(--bg);
-            border-radius: 10px;
-            padding: 0.85rem;
-            margin-top: 0.75rem;
-        }
-        .ck-summary-row { display: flex; justify-content: space-between; font-size: 0.82rem; padding: 0.3rem 0; }
-        .ck-summary-row.total { font-weight: 700; font-size: 0.95rem; border-top: 1.5px solid var(--border); padding-top: 0.6rem; margin-top: 0.4rem; }
+        .ck-summary { background: var(--bg); border-radius: 6px; padding: 0.35rem 0.45rem; margin-top: 0.3rem; }
+        .ck-summary-row { display: flex; justify-content: space-between; font-size: 0.68rem; padding: 0.08rem 0; }
+        .ck-summary-row.total { font-weight: 700; font-size: 0.78rem; border-top: 1.5px solid var(--border); padding-top: 0.25rem; margin-top: 0.15rem; }
         .ck-summary-row.discount { color: var(--green); }
-
-        .ck-gpay { margin-top: 0.85rem; display: flex; justify-content: center; }
+        .ck-gpay { margin-top: 0.35rem; display: flex; justify-content: center; }
 
         /* ---- INPUT BAR ---- */
         .chat-input-bar {
-            padding: 0.85rem 1.5rem;
+            padding: 0.6rem 1.25rem;
             border-top: 1px solid var(--border);
             background: #fff;
             display: flex;
-            gap: 0.75rem;
+            gap: 0.6rem;
             align-items: center;
             flex-shrink: 0;
         }
         .chat-input-bar input {
-            flex: 1;
-            padding: 0.65rem 1rem;
-            border: 1px solid var(--border);
-            border-radius: 24px;
-            font-size: 0.88rem;
-            font-family: inherit;
-            outline: none;
-            background: var(--bg);
+            flex: 1; padding: 0.55rem 0.85rem; border: 1px solid var(--border);
+            border-radius: 24px; font-size: 0.84rem; font-family: inherit; outline: none; background: var(--bg);
         }
         .chat-input-bar input:focus { border-color: var(--accent); }
         .chat-input-bar button {
-            width: 38px; height: 38px;
-            border-radius: 50%;
-            background: var(--accent);
-            color: #fff;
-            border: none;
-            cursor: pointer;
-            font-size: 1.1rem;
-            display: flex; align-items: center; justify-content: center;
-            transition: background 0.15s;
+            width: 34px; height: 34px; border-radius: 50%; background: var(--accent);
+            color: #fff; border: none; cursor: pointer; font-size: 1rem;
+            display: flex; align-items: center; justify-content: center; transition: background 0.15s;
         }
         .chat-input-bar button:hover { background: var(--accent-dark); }
 
-        /* ---- RIGHT: API LOG PANEL ---- */
-        .api-panel {
-            background: var(--bg-api);
-            color: #a8e6cf;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
+        /* ---- RIGHT: API LOG ---- */
+        .api-panel { background: var(--bg-api); color: #a8e6cf; display: flex; flex-direction: column; overflow: hidden; }
         .api-panel-header {
-            padding: 0.85rem 1rem;
-            border-bottom: 1px solid rgba(255,255,255,0.08);
-            font-size: 0.82rem;
-            font-weight: 600;
-            color: #ffd93d;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+            padding: 0.7rem 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.08);
+            font-size: 0.78rem; font-weight: 600; color: #ffd93d;
+            display: flex; align-items: center; gap: 0.4rem;
         }
         .api-log-entries {
-            flex: 1;
-            overflow-y: auto;
-            padding: 0.5rem;
-            font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', monospace;
-            font-size: 0.72rem;
-            line-height: 1.6;
+            flex: 1; overflow-y: auto; padding: 0.4rem;
+            font-family: 'Cascadia Code', 'Fira Code', monospace; font-size: 0.68rem; line-height: 1.5;
         }
-        .log-entry {
-            padding: 0.6rem 0.5rem;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-        .log-entry .le-head { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+        .log-entry { padding: 0.45rem 0.4rem; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .log-entry .le-head { display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap; }
         .log-entry .method { color: #c792ea; font-weight: 700; }
         .log-entry .url { color: #82aaff; }
         .log-entry .status-ok { color: #c3e88d; }
         .log-entry .status-err { color: #ff5370; }
         .log-entry .timing { color: #636e72; }
-        .log-entry .body {
-            color: #a6accd;
-            font-size: 0.68rem;
-            margin-top: 0.3rem;
-            max-height: 120px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-            word-break: break-all;
-        }
+        .log-entry .body { color: #a6accd; font-size: 0.62rem; margin-top: 0.2rem; max-height: 100px; overflow-y: auto; white-space: pre-wrap; word-break: break-all; }
 
         /* ---- SCROLLBAR ---- */
-        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 3px; }
-        .api-log-entries::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); }
-        .chat-messages::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); }
+        ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 3px; }
+        .api-log-entries::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); }
 
-        /* ---- TYPING INDICATOR ---- */
-        .typing-indicator .msg-bubble { display: flex; gap: 4px; padding: 0.85rem 1.2rem; }
-        .typing-dot {
-            width: 7px; height: 7px;
-            background: #aaa;
-            border-radius: 50%;
-            animation: typingBounce 1.2s infinite;
-        }
+        /* ---- TYPING ---- */
+        .typing-indicator .msg-bubble { display: flex; gap: 4px; padding: 0.65rem 1rem; }
+        .typing-dot { width: 6px; height: 6px; background: #aaa; border-radius: 50%; animation: typingBounce 1.2s infinite; }
         .typing-dot:nth-child(2) { animation-delay: 0.15s; }
         .typing-dot:nth-child(3) { animation-delay: 0.3s; }
-        @keyframes typingBounce {
-            0%, 60%, 100% { transform: translateY(0); }
-            30% { transform: translateY(-5px); }
-        }
+        @keyframes typingBounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-4px); } }
 
         /* ---- RESPONSIVE ---- */
-        @media (max-width: 1100px) {
-            .app { grid-template-columns: 1fr 300px; }
-            .sidebar { display: none; }
-        }
-        @media (max-width: 768px) {
-            .app { grid-template-columns: 1fr; }
-            .api-panel { display: none; }
-        }
+        @media (max-width: 1100px) { .app { grid-template-columns: 1fr 300px; } .sidebar { display: none; } }
+        @media (max-width: 768px) { .app { grid-template-columns: 1fr; } .api-panel { display: none; } }
     </style>
 </head>
 <body>
@@ -426,24 +340,54 @@
             </div>
         </div>
 
-        <div class="sidebar-tabs">
-            <button class="sidebar-tab active" onclick="switchTab('chat')" id="tabBtnChat">
-                <span class="icon">&#x1f4ac;</span> Checkout Chat
-            </button>
-            <button class="sidebar-tab" onclick="switchTab('diagrams')" id="tabBtnDiagrams">
-                <span class="icon">&#x1f4ca;</span> Flow Diagrams
-            </button>
+        <div class="sidebar-section-label">Checkout Flow</div>
+
+        <!-- Animated Flow Infographic -->
+        <div class="flow-infographic" id="flowInfographic">
+            <div class="flow-node active" id="fn-discovery">
+                <div class="fn-icon">1</div>
+                <div class="fn-label">UCP Discovery<small>GET /.well-known/ucp</small></div>
+            </div>
+            <div class="flow-line" id="fl-1"></div>
+
+            <div class="flow-node" id="fn-catalog">
+                <div class="fn-icon">2</div>
+                <div class="fn-label">Product Catalog<small>GET /api/products</small></div>
+            </div>
+            <div class="flow-line" id="fl-2"></div>
+
+            <div class="flow-node" id="fn-session">
+                <div class="fn-icon">3</div>
+                <div class="fn-label">Create Session<small>POST /checkout-sessions</small></div>
+            </div>
+            <div class="flow-line" id="fl-3"></div>
+
+            <div class="flow-node" id="fn-configure">
+                <div class="fn-icon">4</div>
+                <div class="fn-label">Configure Order<small>PUT /checkout-sessions/:id</small></div>
+            </div>
+            <div class="flow-line" id="fl-4"></div>
+
+            <div class="flow-node" id="fn-gpay">
+                <div class="fn-icon">5</div>
+                <div class="fn-label">Google Pay<small>Encrypted token via MPGS</small></div>
+            </div>
+            <div class="flow-line" id="fl-5"></div>
+
+            <div class="flow-node" id="fn-complete">
+                <div class="fn-icon">6</div>
+                <div class="fn-label">Order Complete<small>MPGS auth + confirmation</small></div>
+            </div>
         </div>
 
         <div class="sidebar-footer">
             <div class="env-badge">TEST MODE</div><br>
             Google Pay &middot; MPGS Gateway<br>
-            UCP v2026-01-23<br>
-            Gateway Encryption
+            UCP v2026-01-23 &middot; Gateway Encryption
         </div>
     </div>
 
-    <!-- CENTER: CHAT + DIAGRAMS -->
+    <!-- CENTER: CHAT -->
     <div class="chat-area">
         <div class="chat-header">
             <div class="avatar">M</div>
@@ -452,19 +396,10 @@
                 <p>AI-powered checkout &middot; Google UCP + Google Pay</p>
             </div>
         </div>
-
-        <!-- Chat Tab -->
-        <div class="tab-content active" id="tabChat">
-            <div class="chat-messages" id="chatMessages"></div>
-            <div class="chat-input-bar">
-                <input type="text" id="userInput" placeholder="Type a message..." onkeydown="if(event.key==='Enter')handleUserInput()" />
-                <button onclick="handleUserInput()">&#x2191;</button>
-            </div>
-        </div>
-
-        <!-- Diagrams Tab -->
-        <div class="tab-content" id="tabDiagrams">
-            <iframe class="diagrams-frame" src="/docs/payment-flow-diagrams.html"></iframe>
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-input-bar">
+            <input type="text" id="userInput" placeholder="Type a message..." onkeydown="if(event.key==='Enter')handleUserInput()" />
+            <button onclick="handleUserInput()">&#x2191;</button>
         </div>
     </div>
 
@@ -479,232 +414,126 @@
 </div>
 
 <script>
-// ---------------------------------------------------------------------------
 // State
-// ---------------------------------------------------------------------------
 let currentSession = null;
 let selectedProduct = null;
 let paymentsClient = null;
-let flowState = 'init'; // init, discovery, catalog, selecting, checkout, paying, done
+let flowState = 'init';
 
-const POTTERY_EMOJI = {
-    'nike-am90-black-10': '\u{1FAD6}',
-    'sony-wh1000xm5': '\u{1F3BA}',
-    'dyson-v15': '\u{1F3FA}',
-};
+const POTTERY_EMOJI = { 'nike-am90-black-10': '\u{1FAD6}', 'sony-wh1000xm5': '\u{1F3BA}', 'dyson-v15': '\u{1F3FA}' };
 
-// ---------------------------------------------------------------------------
-// Google Pay Configuration (TEST mode)
-// ---------------------------------------------------------------------------
-const GPAY_CONFIG = {
-    environment: 'TEST',
-    merchantId: 'BCR2DN4T7654321',
-    merchantName: "Meenakshi's Pottery",
-    gateway: 'mpgs',
-    gatewayMerchantId: 'TESTMPGSMERCHANT',
-};
+// Google Pay Config
+const GPAY_CONFIG = { environment: 'TEST', merchantId: 'BCR2DN4T7654321', merchantName: "Meenakshi's Pottery", gateway: 'mpgs', gatewayMerchantId: 'TESTMPGSMERCHANT' };
+const baseCardPaymentMethod = { type: 'CARD', parameters: { allowedAuthMethods: ['PAN_ONLY', 'CRYPTOGRAM_3DS'], allowedCardNetworks: ['VISA', 'MASTERCARD', 'AMEX', 'DISCOVER'] } };
+const tokenizationSpecification = { type: 'PAYMENT_GATEWAY', parameters: { gateway: GPAY_CONFIG.gateway, gatewayMerchantId: GPAY_CONFIG.gatewayMerchantId } };
+const cardPaymentMethod = { ...baseCardPaymentMethod, tokenizationSpecification };
 
-const baseCardPaymentMethod = {
-    type: 'CARD',
-    parameters: {
-        allowedAuthMethods: ['PAN_ONLY', 'CRYPTOGRAM_3DS'],
-        allowedCardNetworks: ['VISA', 'MASTERCARD', 'AMEX', 'DISCOVER'],
-    },
-};
-
-const tokenizationSpecification = {
-    type: 'PAYMENT_GATEWAY',
-    parameters: {
-        gateway: GPAY_CONFIG.gateway,
-        gatewayMerchantId: GPAY_CONFIG.gatewayMerchantId,
-    },
-};
-
-const cardPaymentMethod = {
-    ...baseCardPaymentMethod,
-    tokenizationSpecification,
-};
-
-// ---------------------------------------------------------------------------
-// Tab Switching
-// ---------------------------------------------------------------------------
-function switchTab(tab) {
-    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.sidebar-tab').forEach(el => el.classList.remove('active'));
-    if (tab === 'chat') {
-        document.getElementById('tabChat').classList.add('active');
-        document.getElementById('tabBtnChat').classList.add('active');
-    } else {
-        document.getElementById('tabDiagrams').classList.add('active');
-        document.getElementById('tabBtnDiagrams').classList.add('active');
-    }
-}
-
-// ---------------------------------------------------------------------------
-// Initialize Google Pay
-// ---------------------------------------------------------------------------
-function initGooglePay() {
-    paymentsClient = new google.payments.api.PaymentsClient({
-        environment: GPAY_CONFIG.environment,
-    });
-
-    paymentsClient.isReadyToPay({
-        apiVersion: 2,
-        apiVersionMinor: 0,
-        allowedPaymentMethods: [baseCardPaymentMethod],
-    }).then(response => {
-        if (response.result) {
-            logApi('GPAY', 'isReadyToPay', 200, { result: true });
+// --- Flow Infographic ---
+const FLOW_STEPS = ['discovery', 'catalog', 'session', 'configure', 'gpay', 'complete'];
+function setFlowStep(step) {
+    const idx = FLOW_STEPS.indexOf(step);
+    FLOW_STEPS.forEach((s, i) => {
+        const node = document.getElementById(`fn-${s}`);
+        const line = document.getElementById(`fl-${i + 1}`);
+        if (!node) return;
+        node.classList.remove('active', 'done');
+        if (i < idx) node.classList.add('done');
+        else if (i === idx) node.classList.add('active');
+        if (line) {
+            line.classList.remove('active', 'done');
+            if (i < idx) line.classList.add('done');
+            else if (i === idx) line.classList.add('active');
         }
-    }).catch(err => {
-        logApi('GPAY', 'isReadyToPay', 500, { error: err.message });
     });
 }
 
-// ---------------------------------------------------------------------------
-// Chat Message Helpers
-// ---------------------------------------------------------------------------
-function addMsg(type, content, extra) {
+// --- Google Pay ---
+function initGooglePay() {
+    paymentsClient = new google.payments.api.PaymentsClient({ environment: GPAY_CONFIG.environment });
+    paymentsClient.isReadyToPay({ apiVersion: 2, apiVersionMinor: 0, allowedPaymentMethods: [baseCardPaymentMethod] })
+        .then(r => { if (r.result) logApi('GPAY', 'isReadyToPay', 200, { result: true }); })
+        .catch(e => logApi('GPAY', 'isReadyToPay', 500, { error: e.message }));
+}
+
+// --- Chat Helpers ---
+function addMsg(type, content) {
     const chat = document.getElementById('chatMessages');
     const msg = document.createElement('div');
     msg.className = `msg ${type}`;
-
-    let label = '';
-    if (type === 'agent') label = "Meenakshi's Pottery";
-    else if (type === 'user') label = 'You';
-
-    let bubbleContent = '';
-    if (typeof content === 'string') {
-        bubbleContent = `<div class="msg-bubble">${escapeHtml(content)}</div>`;
-    } else {
-        bubbleContent = `<div class="msg-bubble">${content}</div>`;
-    }
-
-    msg.innerHTML = (label ? `<div class="msg-label">${label}</div>` : '') + bubbleContent;
-
-    // Remove typing indicator if present
-    const typing = chat.querySelector('.typing-indicator');
-    if (typing) typing.remove();
-
+    let label = type === 'agent' ? "Meenakshi's Pottery" : type === 'user' ? 'You' : '';
+    msg.innerHTML = (label ? `<div class="msg-label">${label}</div>` : '') + `<div class="msg-bubble">${escapeHtml(content)}</div>`;
+    removeTyping(chat);
     chat.appendChild(msg);
     chat.scrollTop = chat.scrollHeight;
     return msg;
 }
-
 function addHtmlMsg(type, html) {
     const chat = document.getElementById('chatMessages');
     const msg = document.createElement('div');
     msg.className = `msg ${type}`;
-
-    let label = '';
-    if (type === 'agent') label = "Meenakshi's Pottery";
-    else if (type === 'user') label = 'You';
-
+    let label = type === 'agent' ? "Meenakshi's Pottery" : type === 'user' ? 'You' : '';
     msg.innerHTML = (label ? `<div class="msg-label">${label}</div>` : '') + `<div class="msg-bubble">${html}</div>`;
-
-    const typing = chat.querySelector('.typing-indicator');
-    if (typing) typing.remove();
-
+    removeTyping(chat);
     chat.appendChild(msg);
     chat.scrollTop = chat.scrollHeight;
     return msg;
 }
-
 function addTyping() {
     const chat = document.getElementById('chatMessages');
-    const old = chat.querySelector('.typing-indicator');
-    if (old) old.remove();
-
+    removeTyping(chat);
     const msg = document.createElement('div');
     msg.className = 'msg agent typing-indicator';
     msg.innerHTML = `<div class="msg-label">Meenakshi's Pottery</div><div class="msg-bubble"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
     chat.appendChild(msg);
     chat.scrollTop = chat.scrollHeight;
 }
+function removeTyping(chat) { const t = chat.querySelector('.typing-indicator'); if (t) t.remove(); }
+function escapeHtml(text) { const d = document.createElement('div'); d.textContent = text; return d.innerHTML; }
 
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-// ---------------------------------------------------------------------------
-// API Helpers
-// ---------------------------------------------------------------------------
+// --- API ---
 async function apiCall(method, url, body) {
     const opts = { method, headers: { 'Content-Type': 'application/json' } };
     if (body) opts.body = JSON.stringify(body);
-
     const start = Date.now();
     const res = await fetch(url, opts);
     const data = await res.json();
-    const ms = Date.now() - start;
-
-    logApi(method, url, res.status, data, ms);
+    logApi(method, url, res.status, data, Date.now() - start);
     return { status: res.status, data };
 }
-
 function logApi(method, url, status, data, ms) {
     const log = document.getElementById('apiLog');
-    const statusClass = status >= 200 && status < 300 ? 'status-ok' : 'status-err';
-    const entry = document.createElement('div');
-    entry.className = 'log-entry';
-    entry.innerHTML = `
-        <div class="le-head">
-            <span class="method">${method}</span>
-            <span class="url">${url}</span>
-            <span class="${statusClass}">[${status}]</span>
-            ${ms ? `<span class="timing">${ms}ms</span>` : ''}
-        </div>
-        <div class="body">${JSON.stringify(data, null, 2).substring(0, 600)}</div>
-    `;
-    log.prepend(entry);
+    const sc = status >= 200 && status < 300 ? 'status-ok' : 'status-err';
+    const e = document.createElement('div');
+    e.className = 'log-entry';
+    e.innerHTML = `<div class="le-head"><span class="method">${method}</span><span class="url">${url}</span><span class="${sc}">[${status}]</span>${ms ? `<span class="timing">${ms}ms</span>` : ''}</div><div class="body">${JSON.stringify(data, null, 2).substring(0, 600)}</div>`;
+    log.prepend(e);
 }
-
 function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-// ---------------------------------------------------------------------------
-// User Input Handler
-// ---------------------------------------------------------------------------
+// --- User Input ---
 async function handleUserInput() {
     const input = document.getElementById('userInput');
     const text = input.value.trim();
     if (!text) return;
     input.value = '';
-
     addMsg('user', text);
-
-    if (flowState === 'init' || flowState === 'discovery') {
-        await startDiscovery();
-    } else if (flowState === 'catalog' || flowState === 'selecting') {
-        addTyping();
-        await delay(500);
-        addMsg('agent', "Please select a product from the catalog above by clicking on it. Or type 'help' for options.");
-    } else if (flowState === 'checkout') {
-        if (text.toLowerCase().includes('promo') || text.toLowerCase().includes('demo20')) {
-            await applyPromo('DEMO20');
-        } else {
-            addMsg('agent', "Please complete the checkout form above and click 'Buy with Google Pay' to proceed.");
-        }
+    if (flowState === 'init' || flowState === 'discovery') { await startDiscovery(); }
+    else if (flowState === 'catalog' || flowState === 'selecting') { addTyping(); await delay(400); addMsg('agent', "Please select a product from the catalog above by clicking on it."); }
+    else if (flowState === 'checkout') {
+        if (text.toLowerCase().includes('promo') || text.toLowerCase().includes('demo20')) { await applyPromo('DEMO20'); }
+        else { addMsg('agent', "Complete the checkout form above and click 'Buy with Google Pay' to proceed."); }
     }
 }
 
-// ---------------------------------------------------------------------------
-// Discovery Flow
-// ---------------------------------------------------------------------------
+// --- Discovery ---
 async function startDiscovery() {
     flowState = 'discovery';
-
-    addTyping();
-    await delay(600);
+    setFlowStep('discovery');
+    addTyping(); await delay(500);
     addMsg('agent', "Welcome! Let me discover what's available through Google's Universal Checkout Protocol...");
-
-    addTyping();
-    await delay(400);
-
+    addTyping(); await delay(400);
     const { data: profile } = await apiCall('GET', '/.well-known/ucp');
-    await delay(300);
-
+    await delay(200);
     addHtmlMsg('agent',
         `<strong>UCP Discovery complete</strong>\n\n` +
         `Merchant: ${escapeHtml(profile.merchant.name)}\n` +
@@ -713,324 +542,173 @@ async function startDiscovery() {
         `Gateway: ${profile.payment_handlers[0].configuration.tokenization.parameters.gateway.toUpperCase()}\n\n` +
         `Let me load the catalog for you...`
     );
-
-    await delay(500);
+    await delay(400);
     await loadCatalog();
 }
 
-// ---------------------------------------------------------------------------
-// Product Catalog (in chat)
-// ---------------------------------------------------------------------------
+// --- Catalog ---
 async function loadCatalog() {
-    addTyping();
-    await delay(400);
-
+    setFlowStep('catalog');
+    addTyping(); await delay(300);
     const { data: products } = await apiCall('GET', '/api/products');
-
-    let cardsHtml = '<strong>Here\'s what we have in stock:</strong><div class="chat-products">';
+    let html = '<strong>Here\'s what we have:</strong><div class="chat-products">';
     products.forEach(p => {
         const emoji = POTTERY_EMOJI[p.sku] || '\u{1F3FA}';
-        cardsHtml += `
-            <div class="chat-product" data-sku="${p.sku}" onclick="selectProduct('${p.sku}')">
-                <div class="prod-emoji">${emoji}</div>
-                <div class="prod-name">${escapeHtml(p.name)}</div>
-                <div class="prod-price">$${p.price.toFixed(2)}</div>
-                <div class="prod-sku">${p.sku}</div>
-            </div>
-        `;
+        html += `<div class="chat-product" data-sku="${p.sku}" onclick="selectProduct('${p.sku}')"><div class="prod-emoji">${emoji}</div><div class="prod-name">${escapeHtml(p.name)}</div><div class="prod-price">$${p.price.toFixed(2)}</div><div class="prod-sku">${p.sku}</div></div>`;
     });
-    cardsHtml += '</div>';
-
-    addHtmlMsg('agent', cardsHtml);
+    html += '</div>';
+    addHtmlMsg('agent', html);
     flowState = 'catalog';
 }
 
-// ---------------------------------------------------------------------------
-// Product Selection
-// ---------------------------------------------------------------------------
+// --- Product Selection ---
 async function selectProduct(sku) {
-    // Highlight selected
-    document.querySelectorAll('.chat-product').forEach(el => {
-        el.classList.toggle('selected', el.dataset.sku === sku);
-    });
-
+    document.querySelectorAll('.chat-product').forEach(el => el.classList.toggle('selected', el.dataset.sku === sku));
     const { data: products } = await apiCall('GET', '/api/products');
     selectedProduct = products.find(p => p.sku === sku);
     if (!selectedProduct) return;
-
     flowState = 'selecting';
+    setFlowStep('session');
     addMsg('user', `I'd like the ${selectedProduct.name}`);
-
-    addTyping();
-    await delay(500);
-    addMsg('agent', `Great choice! Creating a checkout session for ${selectedProduct.name}...`);
-
-    addTyping();
-    await delay(400);
-
-    const { data: session } = await apiCall('POST', '/api/ucp/checkout-sessions', {
-        items: [{ sku: selectedProduct.sku, quantity: 1 }],
-    });
-
+    addTyping(); await delay(400);
+    addMsg('agent', `Great choice! Creating checkout session for ${selectedProduct.name}...`);
+    addTyping(); await delay(300);
+    const { data: session } = await apiCall('POST', '/api/ucp/checkout-sessions', { items: [{ sku: selectedProduct.sku, quantity: 1 }] });
     currentSession = session;
-
-    addMsg('agent', `Session created! Please fill in your details and complete the order below.`);
-    await delay(200);
+    setFlowStep('configure');
+    addMsg('agent', 'Session created! Fill in your details below:');
+    await delay(150);
     showInlineCheckout(session);
     flowState = 'checkout';
 }
 
-// ---------------------------------------------------------------------------
-// Inline Checkout (in chat)
-// ---------------------------------------------------------------------------
+// --- Compact Checkout ---
 function showInlineCheckout(session) {
-    const t = session.totals;
-
     const html = `
         <div class="chat-checkout" id="inlineCheckout">
             <h4>Configure Your Order</h4>
             <div class="ck-row">
-                <div class="ck-group">
-                    <label>Full Name</label>
-                    <input type="text" id="ckName" value="Jane Smith" />
-                </div>
-                <div class="ck-group">
-                    <label>Email</label>
-                    <input type="email" id="ckEmail" value="jane@example.com" />
-                </div>
+                <div class="ck-group"><label>Full Name</label><input type="text" id="ckName" value="Jane Smith"/></div>
+                <div class="ck-group"><label>Email</label><input type="email" id="ckEmail" value="jane@example.com"/></div>
             </div>
             <div class="ck-row full">
-                <div class="ck-group">
-                    <label>Street Address</label>
-                    <input type="text" id="ckAddress" value="123 Main Street" />
-                </div>
+                <div class="ck-group"><label>Street Address</label><input type="text" id="ckAddress" value="123 Main Street"/></div>
+            </div>
+            <div class="ck-row triple">
+                <div class="ck-group"><label>City</label><input type="text" id="ckCity" value="San Francisco"/></div>
+                <div class="ck-group"><label>State</label><input type="text" id="ckState" value="CA"/></div>
+                <div class="ck-group"><label>ZIP</label><input type="text" id="ckZip" value="94105"/></div>
             </div>
             <div class="ck-row">
-                <div class="ck-group">
-                    <label>City</label>
-                    <input type="text" id="ckCity" value="San Francisco" />
-                </div>
-                <div class="ck-group">
-                    <label>State</label>
-                    <input type="text" id="ckState" value="CA" />
-                </div>
-            </div>
-            <div class="ck-row">
-                <div class="ck-group">
-                    <label>ZIP Code</label>
-                    <input type="text" id="ckZip" value="94105" />
-                </div>
-                <div class="ck-group">
-                    <label>Shipping Method</label>
+                <div class="ck-group"><label>Shipping</label>
                     <select id="ckShipping" onchange="updateShipping()">
                         <option value="standard">Standard \u2014 $5.99</option>
                         <option value="express">Express \u2014 $12.99</option>
                         <option value="overnight">Overnight \u2014 $24.99</option>
                     </select>
                 </div>
+                <div class="ck-group"><label>Promo Code</label>
+                    <div class="ck-promo-row" style="margin:0"><input type="text" id="ckPromo" placeholder="DEMO20"/><button onclick="applyPromoFromForm()">Apply</button></div>
+                </div>
             </div>
-            <div class="ck-promo-row">
-                <input type="text" id="ckPromo" placeholder="Promo code (try DEMO20)" />
-                <button onclick="applyPromoFromForm()">Apply</button>
-            </div>
-            <div class="ck-summary" id="ckSummary">
-                ${renderSummaryHtml(session)}
-            </div>
+            <div class="ck-summary" id="ckSummary">${renderSummaryHtml(session)}</div>
             <div class="ck-gpay" id="ckGpay"></div>
-        </div>
-    `;
-
+        </div>`;
     addHtmlMsg('agent', html);
-
-    // Add Google Pay button inside the chat checkout
     setTimeout(() => {
-        const container = document.getElementById('ckGpay');
-        if (container && paymentsClient) {
-            const button = paymentsClient.createButton({
-                onClick: onGooglePayClicked,
-                buttonColor: 'black',
-                buttonType: 'buy',
-                buttonSizeMode: 'fill',
-            });
-            container.appendChild(button);
-        }
+        const c = document.getElementById('ckGpay');
+        if (c && paymentsClient) c.appendChild(paymentsClient.createButton({ onClick: onGooglePayClicked, buttonColor: 'black', buttonType: 'buy', buttonSizeMode: 'fill' }));
     }, 100);
 }
-
-function renderSummaryHtml(session) {
-    const t = session.totals;
-    let html = `
-        <div class="ck-summary-row"><span>Subtotal</span><span>$${t.subtotal.toFixed(2)}</span></div>
-        <div class="ck-summary-row"><span>Shipping (${escapeHtml(session.shipping_method.name)})</span><span>$${t.shipping.toFixed(2)}</span></div>
-        <div class="ck-summary-row"><span>Tax</span><span>$${t.tax.toFixed(2)}</span></div>
-    `;
-    if (t.discount) {
-        html += `<div class="ck-summary-row discount"><span>Discount (${escapeHtml(session.promo_code)})</span><span>-$${t.discount.toFixed(2)}</span></div>`;
-    }
-    html += `<div class="ck-summary-row total"><span>Total</span><span>$${t.total.toFixed(2)}</span></div>`;
-    return html;
+function renderSummaryHtml(s) {
+    const t = s.totals;
+    let h = `<div class="ck-summary-row"><span>Subtotal</span><span>$${t.subtotal.toFixed(2)}</span></div>`;
+    h += `<div class="ck-summary-row"><span>Shipping (${escapeHtml(s.shipping_method.name)})</span><span>$${t.shipping.toFixed(2)}</span></div>`;
+    h += `<div class="ck-summary-row"><span>Tax</span><span>$${t.tax.toFixed(2)}</span></div>`;
+    if (t.discount) h += `<div class="ck-summary-row discount"><span>Discount (${escapeHtml(s.promo_code)})</span><span>-$${t.discount.toFixed(2)}</span></div>`;
+    h += `<div class="ck-summary-row total"><span>Total</span><span>$${t.total.toFixed(2)}</span></div>`;
+    return h;
 }
-
 async function updateShipping() {
     if (!currentSession) return;
-    const method = document.getElementById('ckShipping').value;
-
-    const { data: session } = await apiCall('PUT', `/api/ucp/checkout-sessions/${currentSession.id}`, {
-        shipping_address: {
-            name: document.getElementById('ckName').value,
-            address: document.getElementById('ckAddress').value,
-            city: document.getElementById('ckCity').value,
-            state: document.getElementById('ckState').value,
-            zip: document.getElementById('ckZip').value,
-            country: 'US',
-        },
-        shipping_method: method,
+    const { data: s } = await apiCall('PUT', `/api/ucp/checkout-sessions/${currentSession.id}`, {
+        shipping_address: { name: document.getElementById('ckName').value, address: document.getElementById('ckAddress').value, city: document.getElementById('ckCity').value, state: document.getElementById('ckState').value, zip: document.getElementById('ckZip').value, country: 'US' },
+        shipping_method: document.getElementById('ckShipping').value
     });
-
-    currentSession = session;
-    const summary = document.getElementById('ckSummary');
-    if (summary) summary.innerHTML = renderSummaryHtml(session);
+    currentSession = s;
+    const el = document.getElementById('ckSummary');
+    if (el) el.innerHTML = renderSummaryHtml(s);
 }
-
-async function applyPromoFromForm() {
-    const code = document.getElementById('ckPromo').value.trim();
-    if (code) await applyPromo(code);
-}
-
+async function applyPromoFromForm() { const c = document.getElementById('ckPromo').value.trim(); if (c) await applyPromo(c); }
 async function applyPromo(code) {
     if (!currentSession) return;
-
-    const { data: session } = await apiCall('PUT', `/api/ucp/checkout-sessions/${currentSession.id}`, {
-        promo_code: code,
-    });
-
-    currentSession = session;
-    const summary = document.getElementById('ckSummary');
-    if (summary) summary.innerHTML = renderSummaryHtml(session);
-
-    if (session.totals.discount) {
-        addMsg('agent', `Promo "${code}" applied! You save $${session.totals.discount.toFixed(2)}. New total: $${session.totals.total.toFixed(2)}`);
-    } else {
-        addMsg('agent', `Sorry, "${code}" isn't a valid promo code.`);
-    }
+    const { data: s } = await apiCall('PUT', `/api/ucp/checkout-sessions/${currentSession.id}`, { promo_code: code });
+    currentSession = s;
+    const el = document.getElementById('ckSummary');
+    if (el) el.innerHTML = renderSummaryHtml(s);
+    if (s.totals.discount) addMsg('agent', `Promo "${code}" applied! You save $${s.totals.discount.toFixed(2)}. New total: $${s.totals.total.toFixed(2)}`);
+    else addMsg('agent', `Sorry, "${code}" isn't a valid promo code.`);
 }
 
-// ---------------------------------------------------------------------------
-// Google Pay Payment
-// ---------------------------------------------------------------------------
+// --- Google Pay ---
 async function onGooglePayClicked() {
     if (!currentSession) return;
     flowState = 'paying';
-
-    addMsg('agent', `Total: $${currentSession.totals.total.toFixed(2)}. Requesting Google Pay payment...`);
-
-    const paymentDataRequest = {
-        apiVersion: 2,
-        apiVersionMinor: 0,
-        allowedPaymentMethods: [cardPaymentMethod],
-        transactionInfo: {
-            totalPriceStatus: 'FINAL',
-            totalPrice: currentSession.totals.total.toString(),
-            currencyCode: 'USD',
-            countryCode: 'US',
-        },
-        merchantInfo: {
-            merchantId: GPAY_CONFIG.merchantId,
-            merchantName: GPAY_CONFIG.merchantName,
-        },
-    };
-
+    setFlowStep('gpay');
+    addMsg('agent', `Total: $${currentSession.totals.total.toFixed(2)}. Requesting Google Pay...`);
     try {
-        const paymentData = await paymentsClient.loadPaymentData(paymentDataRequest);
-        logApi('GPAY', 'loadPaymentData', 200, {
-            paymentMethodData: {
-                type: paymentData.paymentMethodData.type,
-                description: paymentData.paymentMethodData.description,
-                tokenizationData: { type: paymentData.paymentMethodData.tokenizationData.type, token: '[ENCRYPTED_TOKEN]' },
-            },
+        const pd = await paymentsClient.loadPaymentData({
+            apiVersion: 2, apiVersionMinor: 0, allowedPaymentMethods: [cardPaymentMethod],
+            transactionInfo: { totalPriceStatus: 'FINAL', totalPrice: currentSession.totals.total.toString(), currencyCode: 'USD', countryCode: 'US' },
+            merchantInfo: { merchantId: GPAY_CONFIG.merchantId, merchantName: GPAY_CONFIG.merchantName }
         });
-
+        logApi('GPAY', 'loadPaymentData', 200, { type: pd.paymentMethodData.type, description: pd.paymentMethodData.description, token: '[ENCRYPTED]' });
         addMsg('user', 'Payment confirmed via Google Pay');
-        addTyping();
-        await delay(600);
+        addTyping(); await delay(500);
         addMsg('agent', 'Processing payment through MPGS gateway...');
-
-        await completeCheckout(paymentData);
+        await completeCheckout(pd);
     } catch (err) {
-        if (err.statusCode === 'CANCELED') {
-            addMsg('system', 'Payment cancelled by user.');
-        } else {
-            addMsg('system', `Google Pay error: ${err.message || JSON.stringify(err)}`);
-        }
+        addMsg('system', err.statusCode === 'CANCELED' ? 'Payment cancelled.' : `Google Pay error: ${err.message || JSON.stringify(err)}`);
         flowState = 'checkout';
     }
 }
 
-// ---------------------------------------------------------------------------
-// Complete Checkout
-// ---------------------------------------------------------------------------
+// --- Complete ---
 async function completeCheckout(paymentData) {
-    addTyping();
-    await delay(800);
-
-    const { data: result } = await apiCall('POST', `/api/ucp/checkout-sessions/${currentSession.id}/complete`, {
-        paymentData,
-    });
-
-    if (result.status === 'completed') {
+    addTyping(); await delay(700);
+    const { data: r } = await apiCall('POST', `/api/ucp/checkout-sessions/${currentSession.id}/complete`, { paymentData });
+    if (r.status === 'completed') {
         flowState = 'done';
-
-        const successHtml = `
-            <div class="confetti">&#127881;&#127882;&#127881;</div>
-            <h3>Congratulations on your order!</h3>
-            <p style="margin:0.5rem 0;">Your order has been placed successfully.</p>
-            <div style="background:#fff;border-radius:8px;padding:0.75rem;margin-top:0.75rem;text-align:left;font-size:0.82rem;">
-                <div style="display:flex;justify-content:space-between;margin-bottom:0.3rem;"><span>Order ID</span><strong>${result.order_id}</strong></div>
-                <div style="display:flex;justify-content:space-between;margin-bottom:0.3rem;"><span>Auth Code</span><strong>${result.session.payment.authorization_code}</strong></div>
-                <div style="display:flex;justify-content:space-between;margin-bottom:0.3rem;"><span>Transaction</span><strong>${result.session.payment.transaction_id}</strong></div>
-                <div style="display:flex;justify-content:space-between;margin-bottom:0.3rem;"><span>Gateway</span><strong>MPGS (${result.session.payment.gateway})</strong></div>
-                <div style="display:flex;justify-content:space-between;margin-bottom:0.3rem;"><span>Amount</span><strong>$${result.session.totals.total.toFixed(2)} USD</strong></div>
-                <div style="display:flex;justify-content:space-between;"><span>Status</span><strong style="color:#2e7d32;">${result.session.payment.status}</strong></div>
-            </div>
-            <p style="margin-top:0.75rem;font-size:0.78rem;color:#5a8a5e;">Payment processed via Google Pay + MPGS Gateway Encryption</p>
-        `;
-
+        setFlowStep('complete');
         const chat = document.getElementById('chatMessages');
         const msg = document.createElement('div');
-        msg.className = 'msg success';
-        msg.style.maxWidth = '100%';
-        msg.style.alignSelf = 'center';
-        msg.innerHTML = `<div class="msg-bubble">${successHtml}</div>`;
-        const typing = chat.querySelector('.typing-indicator');
-        if (typing) typing.remove();
-        chat.appendChild(msg);
-        chat.scrollTop = chat.scrollHeight;
-
-        await delay(500);
-        addMsg('agent', `Thank you for shopping at Meenakshi's Pottery! Your ${selectedProduct.name} will be shipped soon. Is there anything else I can help with?`);
-    } else {
-        addMsg('system', 'Payment could not be completed. Please try again.');
-        flowState = 'checkout';
-    }
+        msg.className = 'msg success'; msg.style.maxWidth = '100%'; msg.style.alignSelf = 'center';
+        msg.innerHTML = `<div class="msg-bubble">
+            <div class="confetti">&#127881;&#127882;&#127881;</div>
+            <h3>Congratulations on your order!</h3>
+            <p style="margin:0.4rem 0;font-size:0.82rem;">Your order has been placed successfully.</p>
+            <div style="background:#fff;border-radius:6px;padding:0.55rem;margin-top:0.5rem;text-align:left;font-size:0.75rem;line-height:1.7;">
+                <div style="display:flex;justify-content:space-between;"><span>Order</span><strong>${r.order_id}</strong></div>
+                <div style="display:flex;justify-content:space-between;"><span>Auth</span><strong>${r.session.payment.authorization_code}</strong></div>
+                <div style="display:flex;justify-content:space-between;"><span>Txn</span><strong>${r.session.payment.transaction_id}</strong></div>
+                <div style="display:flex;justify-content:space-between;"><span>Gateway</span><strong>MPGS</strong></div>
+                <div style="display:flex;justify-content:space-between;"><span>Amount</span><strong>$${r.session.totals.total.toFixed(2)}</strong></div>
+                <div style="display:flex;justify-content:space-between;"><span>Status</span><strong style="color:#2e7d32;">${r.session.payment.status}</strong></div>
+            </div>
+            <p style="margin-top:0.5rem;font-size:0.7rem;color:#5a8a5e;">Google Pay + MPGS Gateway Encryption</p>
+        </div>`;
+        removeTyping(chat); chat.appendChild(msg); chat.scrollTop = chat.scrollHeight;
+        await delay(400);
+        addMsg('agent', `Thank you for shopping at Meenakshi's Pottery! Your ${selectedProduct.name} will be shipped soon.`);
+    } else { addMsg('system', 'Payment could not be completed. Please try again.'); flowState = 'checkout'; }
 }
 
-// ---------------------------------------------------------------------------
-// Boot
-// ---------------------------------------------------------------------------
+// --- Boot ---
 window.addEventListener('load', () => {
-    // Welcome messages
     addMsg('system', "Meenakshi's Pottery \u2014 AI Checkout Demo (Google UCP + Google Pay + MPGS)");
-    addMsg('agent', "Hello! Welcome to Meenakshi's Pottery. I can help you browse our collection and complete a purchase using Google Pay.\n\nType anything or just say 'hi' to get started!");
+    addMsg('agent', "Hello! Welcome to Meenakshi's Pottery. I can help you browse our collection and complete a purchase using Google Pay.\n\nType anything or say 'hi' to get started!");
     flowState = 'init';
-
-    // Init Google Pay
-    const tryInit = () => {
-        if (typeof google !== 'undefined' && google.payments) {
-            initGooglePay();
-        } else {
-            setTimeout(tryInit, 200);
-        }
-    };
+    const tryInit = () => { if (typeof google !== 'undefined' && google.payments) initGooglePay(); else setTimeout(tryInit, 200); };
     tryInit();
 });
 </script>
