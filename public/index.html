@@ -125,6 +125,9 @@
             background: var(--bg-chat);
             border-left: 1px solid var(--border);
             border-right: 1px solid var(--border);
+            height: 100vh;
+            min-height: 0;
+            overflow: hidden;
         }
         .chat-header {
             padding: 0.85rem 1.5rem;
@@ -133,6 +136,7 @@
             align-items: center;
             gap: 0.75rem;
             background: #fff;
+            flex-shrink: 0;
         }
         .chat-header .avatar {
             width: 32px; height: 32px;
@@ -145,7 +149,8 @@
         .chat-header .info p { font-size: 0.72rem; color: var(--text-light); }
 
         .chat-messages {
-            flex: 1;
+            flex: 1 1 0;
+            min-height: 0;
             overflow-y: auto;
             padding: 1.5rem;
             display: flex;
@@ -155,7 +160,7 @@
         }
 
         /* Tab content */
-        .tab-content { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+        .tab-content { display: none; flex: 1 1 0; min-height: 0; flex-direction: column; overflow: hidden; }
         .tab-content.active { display: flex; }
 
         .diagrams-frame { flex: 1; border: none; width: 100%; }
@@ -302,6 +307,7 @@
             display: flex;
             gap: 0.75rem;
             align-items: center;
+            flex-shrink: 0;
         }
         .chat-input-bar input {
             flex: 1;
