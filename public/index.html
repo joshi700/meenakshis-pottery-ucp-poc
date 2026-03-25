@@ -674,12 +674,16 @@ async function startDiscovery() {
     addTyping(); await delay(400);
     const { data: profile } = await apiCall('GET', '/.well-known/ucp');
     await delay(200);
+    const capNames = profile.ucp.capabilities.map(c => c.name.split('.').pop()).join(', ');
+    const gpayHandler = profile.payment.handlers.find(h => h.name === 'com.google.pay');
+    const gateway = gpayHandler?.config?.allowed_payment_methods?.[0]?.tokenization_specification?.parameters?.gateway || 'unknown';
+    const gatewayMid = gpayHandler?.config?.allowed_payment_methods?.[0]?.tokenization_specification?.parameters?.gatewayMerchantId || '';
     addHtmlMsg('agent',
         `<strong>UCP Discovery complete</strong>\n\n` +
-        `Merchant: ${escapeHtml(profile.merchant.name)}\n` +
-        `Capabilities: ${profile.capabilities.join(', ')}\n` +
-        `Payment: Google Pay (${profile.payment_handlers[0].configuration.environment} mode)\n` +
-        `Gateway: ${profile.payment_handlers[0].configuration.tokenization.parameters.gateway.toUpperCase()}\n\n` +
+        `Endpoint: ${escapeHtml(profile.ucp.services['dev.ucp.shopping']?.rest?.endpoint || 'N/A')}\n` +
+        `Capabilities: ${capNames}\n` +
+        `Payment: Google Pay via ${gateway.toUpperCase()} (${escapeHtml(gatewayMid)})\n` +
+        `Protocol: UCP v${profile.ucp.version}\n\n` +
         `Let me load the catalog for you...`
     );
     await delay(400);
