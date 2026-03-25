@@ -70,80 +70,37 @@
 
         .sidebar-section-label {
             font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.1em;
-            color: #555; margin: 1rem 0 0.5rem 0.25rem;
+            color: #555; margin: 0.75rem 0 0.4rem 0.25rem;
         }
 
-        /* ---- ANIMATED FLOW INFOGRAPHIC ---- */
+        /* ---- ANIMATED SVG FLOW INFOGRAPHIC ---- */
         .flow-infographic {
             flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 0;
-            padding: 0 0.25rem;
-            overflow-y: auto;
-        }
-        .flow-node {
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-            padding: 0.5rem 0.6rem;
-            border-radius: 8px;
-            font-size: 0.72rem;
-            color: #777;
-            transition: all 0.4s ease;
-            position: relative;
-        }
-        .flow-node.active { color: #fff; background: rgba(255,255,255,0.06); }
-        .flow-node.done { color: #a8e6cf; }
-        .flow-node .fn-icon {
-            width: 26px; height: 26px;
-            border-radius: 50%;
-            border: 2px solid #444;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 0.7rem;
-            flex-shrink: 0;
-            transition: all 0.4s ease;
-            position: relative;
-            z-index: 2;
-        }
-        .flow-node.active .fn-icon {
-            border-color: var(--accent);
-            background: var(--accent);
-            color: #fff;
-            box-shadow: 0 0 12px rgba(201,100,66,0.5);
-        }
-        .flow-node.done .fn-icon {
-            border-color: #4caf50;
-            background: #4caf50;
-            color: #fff;
-        }
-        .flow-node .fn-label { line-height: 1.3; }
-        .flow-node .fn-label small { display: block; font-size: 0.6rem; color: #555; }
-
-        /* Animated connecting lines */
-        .flow-line {
-            width: 2px;
-            height: 16px;
-            margin-left: calc(0.6rem + 12px);
-            background: #333;
-            position: relative;
+            padding: 0;
             overflow: hidden;
+            position: relative;
         }
-        .flow-line.active::after, .flow-line.done::after {
-            content: '';
-            position: absolute;
-            top: -100%;
-            left: 0;
+        .flow-infographic svg {
             width: 100%;
             height: 100%;
-            background: linear-gradient(180deg, transparent, var(--accent), transparent);
-            animation: flowPulse 1.5s infinite;
         }
-        .flow-line.done { background: #4caf50; }
-        .flow-line.done::after { background: linear-gradient(180deg, transparent, #81c784, transparent); }
-        @keyframes flowPulse {
-            0% { top: -100%; }
-            100% { top: 200%; }
+        /* Particle animation along paths */
+        @keyframes dashFlow {
+            to { stroke-dashoffset: -20; }
+        }
+        @keyframes particleMove {
+            0% { offset-distance: 0%; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { offset-distance: 100%; opacity: 0; }
+        }
+        @keyframes nodeGlow {
+            0%, 100% { filter: drop-shadow(0 0 3px rgba(201,100,66,0.4)); }
+            50% { filter: drop-shadow(0 0 8px rgba(201,100,66,0.8)); }
+        }
+        @keyframes nodeDoneGlow {
+            0%, 100% { filter: drop-shadow(0 0 2px rgba(76,175,80,0.3)); }
+            50% { filter: drop-shadow(0 0 5px rgba(76,175,80,0.6)); }
         }
 
         .sidebar-footer {
@@ -380,42 +337,86 @@
 
         <div class="sidebar-section-label">Checkout Flow</div>
 
-        <!-- Animated Flow Infographic -->
+        <!-- Animated SVG Flow Infographic -->
         <div class="flow-infographic" id="flowInfographic">
-            <div class="flow-node active" id="fn-discovery">
-                <div class="fn-icon">1</div>
-                <div class="fn-label">UCP Discovery<small>GET /.well-known/ucp</small></div>
-            </div>
-            <div class="flow-line" id="fl-1"></div>
+            <svg viewBox="0 0 230 520" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <!-- Gradient for active paths -->
+                    <linearGradient id="activeGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#c96442" stop-opacity="0.2"/>
+                        <stop offset="50%" stop-color="#c96442" stop-opacity="1"/>
+                        <stop offset="100%" stop-color="#c96442" stop-opacity="0.2"/>
+                    </linearGradient>
+                    <linearGradient id="doneGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#4caf50" stop-opacity="0.2"/>
+                        <stop offset="50%" stop-color="#4caf50" stop-opacity="1"/>
+                        <stop offset="100%" stop-color="#4caf50" stop-opacity="0.2"/>
+                    </linearGradient>
+                    <!-- Glow filters -->
+                    <filter id="glowActive"><feGaussianBlur stdDeviation="3" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                    <filter id="glowDone"><feGaussianBlur stdDeviation="2" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                </defs>
 
-            <div class="flow-node" id="fn-catalog">
-                <div class="fn-icon">2</div>
-                <div class="fn-label">Product Catalog<small>GET /api/products</small></div>
-            </div>
-            <div class="flow-line" id="fl-2"></div>
+                <!-- Connection paths (background) -->
+                <path id="path-1" d="M 35 60 C 35 75, 35 75, 35 90" stroke="#333" stroke-width="2" fill="none"/>
+                <path id="path-2" d="M 35 145 C 35 160, 35 160, 35 175" stroke="#333" stroke-width="2" fill="none"/>
+                <path id="path-3" d="M 35 230 C 35 245, 35 245, 35 260" stroke="#333" stroke-width="2" fill="none"/>
+                <path id="path-4" d="M 35 315 C 35 330, 35 330, 35 345" stroke="#333" stroke-width="2" fill="none"/>
+                <path id="path-5" d="M 35 400 C 35 415, 35 415, 35 430" stroke="#333" stroke-width="2" fill="none"/>
 
-            <div class="flow-node" id="fn-session">
-                <div class="fn-icon">3</div>
-                <div class="fn-label">Create Session<small>POST /checkout-sessions</small></div>
-            </div>
-            <div class="flow-line" id="fl-3"></div>
+                <!-- Animated flowing particles on paths -->
+                <g id="particles">
+                    <!-- These get activated by JS -->
+                </g>
 
-            <div class="flow-node" id="fn-configure">
-                <div class="fn-icon">4</div>
-                <div class="fn-label">Configure Order<small>PUT /checkout-sessions/:id</small></div>
-            </div>
-            <div class="flow-line" id="fl-4"></div>
+                <!-- Step 1: UCP Discovery -->
+                <g id="svg-discovery" class="svg-node" transform="translate(0, 20)">
+                    <circle cx="35" cy="25" r="16" fill="#333" stroke="#555" stroke-width="1.5"/>
+                    <text x="35" y="29" text-anchor="middle" fill="#888" font-size="11" font-weight="600">1</text>
+                    <text x="58" y="22" fill="#777" font-size="10.5" font-weight="500">UCP Discovery</text>
+                    <text x="58" y="34" fill="#555" font-size="8">GET /.well-known/ucp</text>
+                </g>
 
-            <div class="flow-node" id="fn-gpay">
-                <div class="fn-icon">5</div>
-                <div class="fn-label">Google Pay<small>Encrypted token via MPGS</small></div>
-            </div>
-            <div class="flow-line" id="fl-5"></div>
+                <!-- Step 2: Product Catalog -->
+                <g id="svg-catalog" class="svg-node" transform="translate(0, 105)">
+                    <circle cx="35" cy="25" r="16" fill="#333" stroke="#555" stroke-width="1.5"/>
+                    <text x="35" y="29" text-anchor="middle" fill="#888" font-size="11" font-weight="600">2</text>
+                    <text x="58" y="22" fill="#777" font-size="10.5" font-weight="500">Product Catalog</text>
+                    <text x="58" y="34" fill="#555" font-size="8">GET /api/products</text>
+                </g>
 
-            <div class="flow-node" id="fn-complete">
-                <div class="fn-icon">6</div>
-                <div class="fn-label">Order Complete<small>MPGS auth + confirmation</small></div>
-            </div>
+                <!-- Step 3: Create Session -->
+                <g id="svg-session" class="svg-node" transform="translate(0, 190)">
+                    <circle cx="35" cy="25" r="16" fill="#333" stroke="#555" stroke-width="1.5"/>
+                    <text x="35" y="29" text-anchor="middle" fill="#888" font-size="11" font-weight="600">3</text>
+                    <text x="58" y="22" fill="#777" font-size="10.5" font-weight="500">Create Session</text>
+                    <text x="58" y="34" fill="#555" font-size="8">POST /checkout-sessions</text>
+                </g>
+
+                <!-- Step 4: Configure Order -->
+                <g id="svg-configure" class="svg-node" transform="translate(0, 275)">
+                    <circle cx="35" cy="25" r="16" fill="#333" stroke="#555" stroke-width="1.5"/>
+                    <text x="35" y="29" text-anchor="middle" fill="#888" font-size="11" font-weight="600">4</text>
+                    <text x="58" y="22" fill="#777" font-size="10.5" font-weight="500">Configure Order</text>
+                    <text x="58" y="34" fill="#555" font-size="8">PUT /checkout-sessions/:id</text>
+                </g>
+
+                <!-- Step 5: Google Pay -->
+                <g id="svg-gpay" class="svg-node" transform="translate(0, 360)">
+                    <circle cx="35" cy="25" r="16" fill="#333" stroke="#555" stroke-width="1.5"/>
+                    <text x="35" y="29" text-anchor="middle" fill="#888" font-size="11" font-weight="600">5</text>
+                    <text x="58" y="22" fill="#777" font-size="10.5" font-weight="500">Google Pay</text>
+                    <text x="58" y="34" fill="#555" font-size="8">Token via MPGS gateway</text>
+                </g>
+
+                <!-- Step 6: Order Complete -->
+                <g id="svg-complete" class="svg-node" transform="translate(0, 445)">
+                    <circle cx="35" cy="25" r="16" fill="#333" stroke="#555" stroke-width="1.5"/>
+                    <text x="35" y="29" text-anchor="middle" fill="#888" font-size="11" font-weight="600">6</text>
+                    <text x="58" y="22" fill="#777" font-size="10.5" font-weight="500">Order Complete</text>
+                    <text x="58" y="34" fill="#555" font-size="8">MPGS auth + confirmation</text>
+                </g>
+            </svg>
         </div>
 
         <div class="sidebar-footer">
@@ -466,23 +467,124 @@ const baseCardPaymentMethod = { type: 'CARD', parameters: { allowedAuthMethods: 
 const tokenizationSpecification = { type: 'PAYMENT_GATEWAY', parameters: { gateway: GPAY_CONFIG.gateway, gatewayMerchantId: GPAY_CONFIG.gatewayMerchantId } };
 const cardPaymentMethod = { ...baseCardPaymentMethod, tokenizationSpecification };
 
-// --- Flow Infographic ---
+// --- Animated SVG Flow Infographic ---
 const FLOW_STEPS = ['discovery', 'catalog', 'session', 'configure', 'gpay', 'complete'];
+let activeParticleIntervals = [];
+
 function setFlowStep(step) {
     const idx = FLOW_STEPS.indexOf(step);
+    const svg = document.querySelector('.flow-infographic svg');
+    if (!svg) return;
+
+    // Clear old particle animations
+    activeParticleIntervals.forEach(id => clearInterval(id));
+    activeParticleIntervals = [];
+    const particlesG = document.getElementById('particles');
+    if (particlesG) particlesG.innerHTML = '';
+
     FLOW_STEPS.forEach((s, i) => {
-        const node = document.getElementById(`fn-${s}`);
-        const line = document.getElementById(`fl-${i + 1}`);
+        const node = document.getElementById(`svg-${s}`);
+        const path = document.getElementById(`path-${i + 1}`);
         if (!node) return;
-        node.classList.remove('active', 'done');
-        if (i < idx) node.classList.add('done');
-        else if (i === idx) node.classList.add('active');
-        if (line) {
-            line.classList.remove('active', 'done');
-            if (i < idx) line.classList.add('done');
-            else if (i === idx) line.classList.add('active');
+
+        const circle = node.querySelector('circle');
+        const numText = node.querySelector('text');
+        const labelText = node.querySelectorAll('text')[1];
+        const subText = node.querySelectorAll('text')[2];
+
+        if (i < idx) {
+            // Done state
+            circle.setAttribute('fill', '#4caf50');
+            circle.setAttribute('stroke', '#66bb6a');
+            circle.setAttribute('filter', 'url(#glowDone)');
+            numText.setAttribute('fill', '#fff');
+            if (labelText) labelText.setAttribute('fill', '#a8e6cf');
+            if (subText) subText.setAttribute('fill', '#6abf77');
+            if (path) {
+                path.setAttribute('stroke', '#4caf50');
+                path.setAttribute('stroke-width', '2');
+            }
+        } else if (i === idx) {
+            // Active state — glowing
+            circle.setAttribute('fill', '#c96442');
+            circle.setAttribute('stroke', '#e8845e');
+            circle.setAttribute('filter', 'url(#glowActive)');
+            numText.setAttribute('fill', '#fff');
+            if (labelText) labelText.setAttribute('fill', '#fff');
+            if (subText) subText.setAttribute('fill', '#c96442');
+
+            // Animate active pulse
+            const anim = document.createElementNS('http://www.w3.org/2000/svg', 'animate');
+            anim.setAttribute('attributeName', 'r');
+            anim.setAttribute('values', '16;18;16');
+            anim.setAttribute('dur', '1.5s');
+            anim.setAttribute('repeatCount', 'indefinite');
+            circle.querySelectorAll('animate').forEach(a => a.remove());
+            circle.appendChild(anim);
+        } else {
+            // Future state
+            circle.setAttribute('fill', '#333');
+            circle.setAttribute('stroke', '#555');
+            circle.removeAttribute('filter');
+            numText.setAttribute('fill', '#888');
+            if (labelText) labelText.setAttribute('fill', '#777');
+            if (subText) subText.setAttribute('fill', '#555');
+            circle.querySelectorAll('animate').forEach(a => a.remove());
+            if (path) {
+                path.setAttribute('stroke', '#333');
+                path.setAttribute('stroke-width', '2');
+            }
+        }
+
+        // Animate flowing particles on active + done paths
+        if (path && i < idx) {
+            spawnParticles(path, '#4caf50', 2000);
+        }
+        if (path && i === idx) {
+            spawnParticles(path, '#c96442', 800);
         }
     });
+}
+
+function spawnParticles(pathEl, color, intervalMs) {
+    const particlesG = document.getElementById('particles');
+    if (!particlesG) return;
+
+    function createParticle() {
+        const pathLen = pathEl.getTotalLength();
+        const particle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        particle.setAttribute('r', '3');
+        particle.setAttribute('fill', color);
+        particle.setAttribute('opacity', '0');
+
+        // Glow
+        const filt = color === '#c96442' ? 'url(#glowActive)' : 'url(#glowDone)';
+        particle.setAttribute('filter', filt);
+        particlesG.appendChild(particle);
+
+        let start = null;
+        const duration = 600;
+        function animate(ts) {
+            if (!start) start = ts;
+            const progress = (ts - start) / duration;
+            if (progress >= 1) {
+                particle.remove();
+                return;
+            }
+            const pt = pathEl.getPointAtLength(progress * pathLen);
+            particle.setAttribute('cx', pt.x);
+            particle.setAttribute('cy', pt.y);
+            // Fade in/out
+            const opacity = progress < 0.15 ? progress / 0.15 : progress > 0.85 ? (1 - progress) / 0.15 : 1;
+            particle.setAttribute('opacity', Math.min(opacity, 0.9));
+            requestAnimationFrame(animate);
+        }
+        requestAnimationFrame(animate);
+    }
+
+    createParticle();
+    const id = setInterval(createParticle, intervalMs);
+    activeParticleIntervals.push(id);
 }
 
 // --- Google Pay ---
