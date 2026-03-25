@@ -68,50 +68,101 @@ function calculateTotals(items, shippingId) {
 
 // ---------------------------------------------------------------------------
 // UCP Profile — GET /.well-known/ucp
+// Spec: https://developers.google.com/merchant/ucp/guides/ucp-profile
 // ---------------------------------------------------------------------------
 app.get('/.well-known/ucp', (req, res) => {
   const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
+  const ucpVersion = '2026-01-23';
+
   res.json({
-    version: '2026-01-23',
-    merchant: {
-      name: process.env.GOOGLE_PAY_MERCHANT_NAME || "Meenakshi's Pottery",
-      url: baseUrl,
-    },
-    capabilities: ['checkout', 'order_status'],
-    checkout: {
-      type: 'native',
-      api_base: `${baseUrl}/api/ucp`,
-      supported_actions: ['create', 'read', 'update', 'complete', 'cancel'],
-    },
-    payment_handlers: [
-      {
-        type: 'com.google.pay',
-        version: '2026-01-23',
-        configuration: {
-          environment: process.env.GOOGLE_PAY_ENVIRONMENT || 'TEST',
-          merchant_id: process.env.GOOGLE_PAY_MERCHANT_ID,
-          merchant_name: process.env.GOOGLE_PAY_MERCHANT_NAME,
-          tokenization: {
-            type: 'PAYMENT_GATEWAY',
-            parameters: {
-              gateway: process.env.MPGS_GATEWAY || 'mpgs',
-              gatewayMerchantId: process.env.MPGS_GATEWAY_MERCHANT_ID,
-            },
+    ucp: {
+      version: ucpVersion,
+      services: {
+        'dev.ucp.shopping': {
+          version: ucpVersion,
+          spec: 'https://ucp.dev/specs/shopping',
+          rest: {
+            schema: 'https://ucp.dev/services/shopping/openapi.json',
+            endpoint: baseUrl,
           },
-          allowed_card_networks: ['VISA', 'MASTERCARD', 'AMEX', 'DISCOVER'],
-          allowed_auth_methods: ['PAN_ONLY', 'CRYPTOGRAM_3DS'],
         },
       },
-    ],
-    identity_linking: {
-      type: 'guest',
+      capabilities: [
+        {
+          name: 'dev.ucp.shopping.checkout',
+          version: ucpVersion,
+          spec: 'https://ucp.dev/specs/shopping/checkout',
+          schema: 'https://ucp.dev/schemas/shopping/checkout.json',
+        },
+        {
+          name: 'dev.ucp.shopping.fulfillment',
+          version: ucpVersion,
+          spec: 'https://ucp.dev/specs/shopping/fulfillment',
+          schema: 'https://ucp.dev/schemas/shopping/fulfillment.json',
+          extends: 'dev.ucp.shopping.checkout',
+        },
+        {
+          name: 'dev.ucp.shopping.order',
+          version: ucpVersion,
+          spec: 'https://ucp.dev/specs/shopping/order',
+          schema: 'https://ucp.dev/schemas/shopping/order.json',
+        },
+        {
+          name: 'dev.ucp.shopping.discount',
+          version: ucpVersion,
+          spec: 'https://ucp.dev/specs/shopping/discount',
+          schema: 'https://ucp.dev/schemas/shopping/discount.json',
+          extends: 'dev.ucp.shopping.checkout',
+        },
+      ],
     },
-    supported_countries: ['US'],
-    supported_currencies: ['USD'],
-    shipping_regions: ['US'],
-    return_policy_url: `${baseUrl}/return-policy`,
-    privacy_policy_url: `${baseUrl}/privacy-policy`,
-    terms_of_service_url: `${baseUrl}/terms`,
+    payment: {
+      handlers: [
+        {
+          id: 'gpay_handler',
+          name: 'com.google.pay',
+          version: ucpVersion,
+          spec: 'https://pay.google.com/gp/p/ucp/2026-01-23/',
+          config_schema: 'https://pay.google.com/gp/p/ucp/2026-01-23/schemas/config.json',
+          instrument_schemas: [
+            'https://ucp.dev/schemas/shopping/types/card_payment_instrument.json',
+          ],
+          config: {
+            allowed_payment_methods: [
+              {
+                type: 'CARD',
+                parameters: {
+                  allowed_auth_methods: ['PAN_ONLY', 'CRYPTOGRAM_3DS'],
+                  allowed_card_networks: ['VISA', 'MASTERCARD', 'AMEX', 'DISCOVER'],
+                },
+                tokenization_specification: {
+                  type: 'PAYMENT_GATEWAY',
+                  parameters: {
+                    gateway: process.env.MPGS_GATEWAY || 'mpgs',
+                    gatewayMerchantId: process.env.MPGS_GATEWAY_MERCHANT_ID || 'TESTMIDtesting00',
+                  },
+                },
+              },
+            ],
+          },
+        },
+      ],
+    },
+    signing_keys: [
+      // TODO: Generate real EC P-256 keypair for production webhook verification
+      // Use: openssl ecparam -genkey -name prime256v1 -noout -out private.pem
+      //      openssl ec -in private.pem -pubout -out public.pem
+      // Then convert public key to JWK format
+      {
+        kid: 'meenakshi_dev_2025',
+        kty: 'EC',
+        crv: 'P-256',
+        x: 'WbbXwVYGdJoP4Xm3qCkGvBRcRvKtEfXDbWvPzpPS8LA',
+        y: 'sP4jHHxYqC89HBo8TjrtVOAGHfJDflYxw7MFMxuFMPY',
+        use: 'sig',
+        alg: 'ES256',
+      },
+    ],
   });
 });
 
